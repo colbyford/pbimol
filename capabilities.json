@@ -1,20 +1,43 @@
 {
     "dataRoles": [
         {
-            "displayName": "Category Data",
-            "name": "category",
-            "kind": "Grouping"
-        },
-        {
-            "displayName": "Measure Data",
-            "name": "measure",
-            "kind": "Measure"
+            "displayName": "Protein Structure",
+            "name": "proteinData",
+            "kind": "Grouping",
+            "description": "PDB or CIF format protein structure data"
         }
     ],
     "objects": {
-        "dataPoint": {
+        "displaySettings": {
+            "displayName": "Display Settings",
             "properties": {
-                "defaultColor": {
+                "style": {
+                    "displayName": "Protein Style",
+                    "type": {
+                        "enumeration": [
+                            { "value": "cartoon", "displayName": "Cartoon" },
+                            { "value": "stick", "displayName": "Stick" },
+                            { "value": "line", "displayName": "Line" },
+                            { "value": "cross", "displayName": "Cross" },
+                            { "value": "sphere", "displayName": "Sphere" },
+                            { "value": "surface", "displayName": "Surface" }
+                        ]
+                    }
+                },
+                "colorScheme": {
+                    "displayName": "Color Scheme",
+                    "type": {
+                        "enumeration": [
+                            { "value": "chainHetatm", "displayName": "By Chain" },
+                            { "value": "residue", "displayName": "By Residue" },
+                            { "value": "spectrum", "displayName": "Spectrum" },
+                            { "value": "ss", "displayName": "Secondary Structure" },
+                            { "value": "default", "displayName": "Default" }
+                        ]
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
                     "type": {
                         "fill": {
                             "solid": {
@@ -23,30 +46,20 @@
                         }
                     }
                 },
-                "showAllDataPoints": {
+                "spin": {
+                    "displayName": "Auto Rotate",
                     "type": {
                         "bool": true
                     }
                 },
-                "fill": {
+                "quality": {
+                    "displayName": "Rendering Quality",
                     "type": {
-                        "fill": {
-                            "solid": {
-                                "color": true
-                            }
-                        }
-                    }
-                },
-                "fillRule": {
-                    "type": {
-                        "fill": {}
-                    }
-                },
-                 "fontSize": {
-                    "type": {
-                        "formatting": {
-                            "fontSize": true
-                        }
+                        "enumeration": [
+                            { "value": "low", "displayName": "Low" },
+                            { "value": "medium", "displayName": "Medium" },
+                            { "value": "high", "displayName": "High" }
+                        ]
                     }
                 }
             }
@@ -54,23 +67,20 @@
     },
     "dataViewMappings": [
         {
-            "categorical": {
-                "categories": {
-                    "for": {
-                        "in": "category"
-                    },
-                    "dataReductionAlgorithm": {
-                        "top": {}
-                    }
-                },
-                "values": {
+            "table": {
+                "rows": {
                     "select": [
                         {
-                            "bind": {
-                                "to": "measure"
+                            "for": {
+                                "in": "proteinData"
                             }
                         }
-                    ]
+                    ],
+                    "dataReductionAlgorithm": {
+                        "top": {
+                            "count": 1
+                        }
+                    }
                 }
             }
         }

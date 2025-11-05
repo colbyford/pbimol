@@ -33,42 +33,62 @@ import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
 
 /**
- * Data Point Formatting Card
+ * Display Settings Formatting Card
  */
-class DataPointCardSettings extends FormattingSettingsCard {
-    defaultColor = new formattingSettings.ColorPicker({
-        name: "defaultColor",
-        displayName: "Default color",
-        value: { value: "" }
+class DisplaySettingsCard extends FormattingSettingsCard {
+    style = new formattingSettings.ItemDropdown({
+        name: "style",
+        displayName: "Protein Style",
+        items: [
+            { value: "cartoon", displayName: "Cartoon" },
+            { value: "stick", displayName: "Stick" },
+            { value: "line", displayName: "Line" },
+            { value: "cross", displayName: "Cross" },
+            { value: "sphere", displayName: "Sphere" },
+            { value: "surface", displayName: "Surface" }
+        ],
+        value: { value: "cartoon", displayName: "Cartoon" }
     });
 
-    showAllDataPoints = new formattingSettings.ToggleSwitch({
-        name: "showAllDataPoints",
-        displayName: "Show all",
-        value: true
+    colorScheme = new formattingSettings.ItemDropdown({
+        name: "colorScheme",
+        displayName: "Color Scheme",
+        items: [
+            { value: "chainHetatm", displayName: "By Chain" },
+            { value: "residue", displayName: "By Residue" },
+            { value: "spectrum", displayName: "Spectrum" },
+            { value: "ss", displayName: "Secondary Structure" },
+            { value: "default", displayName: "Default" }
+        ],
+        value: { value: "chainHetatm", displayName: "By Chain" }
     });
 
-    fill = new formattingSettings.ColorPicker({
-        name: "fill",
-        displayName: "Fill",
-        value: { value: "" }
+    backgroundColor = new formattingSettings.ColorPicker({
+        name: "backgroundColor",
+        displayName: "Background Color",
+        value: { value: "#FFFFFF" }
     });
 
-    fillRule = new formattingSettings.ColorPicker({
-        name: "fillRule",
-        displayName: "Color saturation",
-        value: { value: "" }
+    spin = new formattingSettings.ToggleSwitch({
+        name: "spin",
+        displayName: "Auto Rotate",
+        value: false
     });
 
-    fontSize = new formattingSettings.NumUpDown({
-        name: "fontSize",
-        displayName: "Text Size",
-        value: 12
+    quality = new formattingSettings.ItemDropdown({
+        name: "quality",
+        displayName: "Rendering Quality",
+        items: [
+            { value: "low", displayName: "Low" },
+            { value: "medium", displayName: "Medium" },
+            { value: "high", displayName: "High" }
+        ],
+        value: { value: "medium", displayName: "Medium" }
     });
 
-    name: string = "dataPoint";
-    displayName: string = "Data colors";
-    slices: Array<FormattingSettingsSlice> = [this.defaultColor, this.showAllDataPoints, this.fill, this.fillRule, this.fontSize];
+    name: string = "displaySettings";
+    displayName: string = "Display Settings";
+    slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin, this.quality];
 }
 
 /**
@@ -77,7 +97,7 @@ class DataPointCardSettings extends FormattingSettingsCard {
 */
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // Create formatting settings model formatting cards
-    dataPointCard = new DataPointCardSettings();
+    displaySettingsCard = new DisplaySettingsCard();
 
-    cards = [this.dataPointCard];
+    cards = [this.displaySettingsCard];
 }
