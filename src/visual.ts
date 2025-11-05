@@ -6,7 +6,7 @@
 *  MIT License
 *
 *  Permission is hereby granted, free of charge, to any person obtaining a copy
-*  of this software and associated documentation files (the ""Software""), to deal
+*  of this software and associated documentation files (the "Software"), to deal
 *  in the Software without restriction, including without limitation the rights
 *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 *  copies of the Software, and to permit persons to whom the Software is
@@ -82,13 +82,18 @@ export class Visual implements IVisual {
         // Get the first row (protein structure data)
         const proteinData = dataView.table.rows[0][0];
         
-        if (!proteinData) {
+        if (!proteinData || proteinData === null || proteinData === undefined) {
             console.log("No protein data found");
             return;
         }
 
         // Convert to string if needed
-        const structureData = String(proteinData);
+        const structureData = String(proteinData).trim();
+        
+        if (structureData === "" || structureData === "null" || structureData === "undefined") {
+            console.log("Invalid protein data");
+            return;
+        }
 
         // Detect format (PDB or CIF)
         let format = "pdb";
