@@ -2,6 +2,8 @@
 
 A Power BI custom visual that allows users to visualize protein structure data using the 3Dmol.js viewer.
 
+<h3 align="right">Tuple, LLC</h3>
+
 ## Features
 
 - **Accepts PDB and CIF format data**: Load protein structures directly from your Power BI data model
@@ -66,14 +68,3 @@ The packaged visual will be available in the `dist/` directory.
 - [3Dmol.js](https://3dmol.csb.pitt.edu/) - Molecular visualization library
 - Power BI Visuals API
 
-## License
-
-MIT License - See LICENSE file for details
-
-## Author
-
-Colby Ford
-
-## Repository
-
-https://github.com/colbyford/3dmol.pbiviz
