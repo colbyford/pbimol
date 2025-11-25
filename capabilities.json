@@ -1,0 +1,89 @@
+{
+    "dataRoles": [
+        {
+            "displayName": "Protein Structure",
+            "name": "proteinData",
+            "kind": "Grouping",
+            "description": "PDB or CIF format protein structure data"
+        }
+    ],
+    "objects": {
+        "displaySettings": {
+            "displayName": "Display Settings",
+            "properties": {
+                "style": {
+                    "displayName": "Protein Style",
+                    "type": {
+                        "enumeration": [
+                            { "value": "cartoon", "displayName": "Cartoon" },
+                            { "value": "stick", "displayName": "Stick" },
+                            { "value": "line", "displayName": "Line" },
+                            { "value": "cross", "displayName": "Cross" },
+                            { "value": "sphere", "displayName": "Sphere" },
+                            { "value": "surface", "displayName": "Surface" }
+                        ]
+                    }
+                },
+                "colorScheme": {
+                    "displayName": "Color Scheme",
+                    "type": {
+                        "enumeration": [
+                            { "value": "chainHetatm", "displayName": "By Chain" },
+                            { "value": "residue", "displayName": "By Residue" },
+                            { "value": "spectrum", "displayName": "Spectrum" },
+                            { "value": "ss", "displayName": "Secondary Structure" },
+                            { "value": "default", "displayName": "Default" }
+                        ]
+                    }
+                },
+                "backgroundColor": {
+                    "displayName": "Background Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "spin": {
+                    "displayName": "Auto Rotate",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "quality": {
+                    "displayName": "Rendering Quality",
+                    "type": {
+                        "enumeration": [
+                            { "value": "low", "displayName": "Low" },
+                            { "value": "medium", "displayName": "Medium" },
+                            { "value": "high", "displayName": "High" }
+                        ]
+                    }
+                }
+            }
+        }
+    },
+    "dataViewMappings": [
+        {
+            "table": {
+                "rows": {
+                    "select": [
+                        {
+                            "for": {
+                                "in": "proteinData"
+                            }
+                        }
+                    ],
+                    "dataReductionAlgorithm": {
+                        "top": {
+                            "count": 1
+                        }
+                    }
+                }
+            }
+        }
+    ],
+    "privileges": []
+}
