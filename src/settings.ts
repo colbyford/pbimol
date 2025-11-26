@@ -1,7 +1,7 @@
 /*
  *  Power BI Visualizations
  *
- *  Copyright (c) Microsoft Corporation
+ *  Copyright (c) Microsoft Corporation and Tuple, LLC.
  *  All rights reserved.
  *  MIT License
  *
