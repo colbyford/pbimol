@@ -28,7 +28,7 @@
                     "displayName": "Color Scheme",
                     "type": {
                         "enumeration": [
-                            { "value": "chainHetatm", "displayName": "By Chain" },
+                            { "value": "chain", "displayName": "By Chain" },
                             { "value": "residue", "displayName": "By Residue" },
                             { "value": "spectrum", "displayName": "Spectrum" },
                             { "value": "ss", "displayName": "Secondary Structure" },
@@ -50,16 +50,6 @@
                     "displayName": "Auto Rotate",
                     "type": {
                         "bool": true
-                    }
-                },
-                "quality": {
-                    "displayName": "Rendering Quality",
-                    "type": {
-                        "enumeration": [
-                            { "value": "low", "displayName": "Low" },
-                            { "value": "medium", "displayName": "Medium" },
-                            { "value": "high", "displayName": "High" }
-                        ]
                     }
                 }
             }
