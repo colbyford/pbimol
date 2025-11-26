@@ -114,14 +114,14 @@ export class Visual implements IVisual {
         const colorScheme = this.formattingSettings.displaySettingsCard.colorScheme.value.value;
         const backgroundColor = this.formattingSettings.displaySettingsCard.backgroundColor.value.value;
         const spin = this.formattingSettings.displaySettingsCard.spin.value;
-        const quality = this.formattingSettings.displaySettingsCard.quality.value.value;
+        // const quality = this.formattingSettings.displaySettingsCard.quality.value.value;
 
         // Apply style and color
         const styleConfig: any = {};
         
         // Configure color scheme
-        if (colorScheme === "chainHetatm") {
-            styleConfig.colorscheme = "chainHetatm";
+        if (colorScheme === "chain") {
+            styleConfig.colorscheme = "chain";
         } else if (colorScheme === "residue") {
             styleConfig.colorscheme = "amino";
         } else if (colorScheme === "spectrum") {
