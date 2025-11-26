@@ -54,13 +54,13 @@ class DisplaySettingsCard extends FormattingSettingsCard {
         name: "colorScheme",
         displayName: "Color Scheme",
         items: [
-            { value: "chainHetatm", displayName: "By Chain" },
+            { value: "chain", displayName: "By Chain" },
             { value: "residue", displayName: "By Residue" },
             { value: "spectrum", displayName: "Spectrum" },
             { value: "ss", displayName: "Secondary Structure" },
             { value: "default", displayName: "Default" }
         ],
-        value: { value: "chainHetatm", displayName: "By Chain" }
+        value: { value: "chain", displayName: "By Chain" }
     });
 
     backgroundColor = new formattingSettings.ColorPicker({
@@ -75,20 +75,21 @@ class DisplaySettingsCard extends FormattingSettingsCard {
         value: false
     });
 
-    quality = new formattingSettings.ItemDropdown({
-        name: "quality",
-        displayName: "Rendering Quality",
-        items: [
-            { value: "low", displayName: "Low" },
-            { value: "medium", displayName: "Medium" },
-            { value: "high", displayName: "High" }
-        ],
-        value: { value: "medium", displayName: "Medium" }
-    });
+    // quality = new formattingSettings.ItemDropdown({
+    //     name: "quality",
+    //     displayName: "Rendering Quality",
+    //     items: [
+    //         { value: "low", displayName: "Low" },
+    //         { value: "medium", displayName: "Medium" },
+    //         { value: "high", displayName: "High" }
+    //     ],
+    //     value: { value: "medium", displayName: "Medium" }
+    // });
 
     name: string = "displaySettings";
     displayName: string = "Display Settings";
-    slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin, this.quality];
+    // slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin, this.quality];
+    slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin];
 }
 
 /**
