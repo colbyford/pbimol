@@ -46,6 +46,11 @@ Access these settings in the Format pane:
 - **Columns**: Number of columns in the grid (set to 0 for automatic layout based on the number of structures)
 - **Show Titles**: Enable/disable display of molecule titles above each structure
 
+#### Surface Settings
+- **Show Surface**: Toggle to overlay a translucent molecular surface on the structure
+- **Surface Opacity**: Adjust the transparency of the surface (0-100%)
+- **Surface Color Scheme**: Select coloring method for the surface (independent from the main style color)
+
 ## Development
 
 ### Prerequisites

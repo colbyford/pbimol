@@ -78,6 +78,37 @@
                     }
                 }
             }
+        },
+        "surfaceSettings": {
+            "displayName": "Surface Settings",
+            "properties": {
+                "showSurface": {
+                    "displayName": "Show Surface",
+                    "description": "Display a translucent surface overlay on the structure",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "surfaceOpacity": {
+                    "displayName": "Surface Opacity",
+                    "description": "Opacity of the surface (0-100%)",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "surfaceColorScheme": {
+                    "displayName": "Surface Color Scheme",
+                    "type": {
+                        "enumeration": [
+                            { "value": "chain", "displayName": "By Chain" },
+                            { "value": "residue", "displayName": "By Residue" },
+                            { "value": "spectrum", "displayName": "Spectrum" },
+                            { "value": "ss", "displayName": "Secondary Structure" },
+                            { "value": "default", "displayName": "Default" }
+                        ]
+                    }
+                }
+            }
         }
     },
     "dataViewMappings": [

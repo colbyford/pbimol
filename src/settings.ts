@@ -116,6 +116,42 @@ class GridSettingsCard extends FormattingSettingsCard {
 }
 
 /**
+ * Surface Settings Formatting Card
+ */
+class SurfaceSettingsCard extends FormattingSettingsCard {
+    showSurface = new formattingSettings.ToggleSwitch({
+        name: "showSurface",
+        displayName: "Show Surface",
+        description: "Display a translucent surface overlay on the structure",
+        value: false
+    });
+
+    surfaceOpacity = new formattingSettings.Slider({
+        name: "surfaceOpacity",
+        displayName: "Surface Opacity",
+        description: "Opacity of the surface (0-100%)",
+        value: 70
+    });
+
+    surfaceColorScheme = new formattingSettings.ItemDropdown({
+        name: "surfaceColorScheme",
+        displayName: "Surface Color Scheme",
+        items: [
+            { value: "chain", displayName: "By Chain" },
+            { value: "residue", displayName: "By Residue" },
+            { value: "spectrum", displayName: "Spectrum" },
+            { value: "ss", displayName: "Secondary Structure" },
+            { value: "default", displayName: "Default" }
+        ],
+        value: { value: "chain", displayName: "By Chain" }
+    });
+
+    name: string = "surfaceSettings";
+    displayName: string = "Surface Settings";
+    slices: Array<FormattingSettingsSlice> = [this.showSurface, this.surfaceOpacity, this.surfaceColorScheme];
+}
+
+/**
 * visual settings model class
 *
 */
@@ -123,6 +159,7 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // Create formatting settings model formatting cards
     displaySettingsCard = new DisplaySettingsCard();
     gridSettingsCard = new GridSettingsCard();
+    surfaceSettingsCard = new SurfaceSettingsCard();
 
-    cards = [this.displaySettingsCard, this.gridSettingsCard];
+    cards = [this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard];
 }

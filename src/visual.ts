@@ -79,8 +79,20 @@ export class Visual implements IVisual {
             return "";
         }
         
+        let normalized = data;
+        
+        // Remove surrounding quotes if present (common when data comes from Excel/CSV)
+        if ((normalized.startsWith('"') && normalized.endsWith('"')) ||
+            (normalized.startsWith("'") && normalized.endsWith("'"))) {
+            normalized = normalized.slice(1, -1);
+        }
+        
+        // Handle escaped newlines (literal \n or \r\n strings that should be actual newlines)
+        // This is common when PDB data is stored in Excel cells or databases
+        normalized = normalized.replace(/\\r\\n/g, '\n').replace(/\\n/g, '\n').replace(/\\r/g, '\n');
+        
         // Handle various line ending formats and normalize to LF
-        let normalized = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        normalized = normalized.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         
         // Remove BOM (Byte Order Mark) if present
         normalized = normalized.replace(/^\uFEFF/, '');
@@ -234,6 +246,9 @@ export class Visual implements IVisual {
         const spin = this.formattingSettings.displaySettingsCard.spin.value;
         const columns = this.formattingSettings.gridSettingsCard.columns.value;
         const showTitles = this.formattingSettings.gridSettingsCard.showTitles.value;
+        const showSurface = this.formattingSettings.surfaceSettingsCard.showSurface.value;
+        const surfaceOpacity = this.formattingSettings.surfaceSettingsCard.surfaceOpacity.value / 100;
+        const surfaceColorScheme = this.formattingSettings.surfaceSettingsCard.surfaceColorScheme.value.value;
 
         // Determine column indices for protein data and title
         let proteinIndex = -1;
@@ -295,7 +310,7 @@ export class Visual implements IVisual {
         // Setup the grid of viewers
         this.setupViewerGrid(validRows.length, columns, backgroundColor, showTitles);
 
-        // Configure style
+        // Configure style color scheme
         const styleConfig: any = {};
         if (colorScheme === "chain") {
             styleConfig.colorscheme = "chain";
@@ -305,6 +320,18 @@ export class Visual implements IVisual {
             styleConfig.colorscheme = "spectrum";
         } else if (colorScheme === "ss") {
             styleConfig.colorscheme = "ssJmol";
+        }
+
+        // Configure surface color scheme (independent from main style)
+        const surfaceConfig: any = { opacity: surfaceOpacity };
+        if (surfaceColorScheme === "chain") {
+            surfaceConfig.colorscheme = "chain";
+        } else if (surfaceColorScheme === "residue") {
+            surfaceConfig.colorscheme = "amino";
+        } else if (surfaceColorScheme === "spectrum") {
+            surfaceConfig.colorscheme = "spectrum";
+        } else if (surfaceColorScheme === "ss") {
+            surfaceConfig.colorscheme = "ssJmol";
         }
 
         // Load each structure into its viewer
@@ -329,7 +356,7 @@ export class Visual implements IVisual {
                 continue;
             }
 
-            // Apply the style
+            // Apply the main style (excluding "surface" as a main style since we have dedicated surface toggle)
             if (style === "cartoon") {
                 viewer.setStyle({}, { cartoon: styleConfig });
             } else if (style === "stick") {
@@ -341,8 +368,13 @@ export class Visual implements IVisual {
             } else if (style === "sphere") {
                 viewer.setStyle({}, { sphere: styleConfig });
             } else if (style === "surface") {
+                // When main style is "surface", just show cartoon as base (surface overlay is controlled separately)
                 viewer.setStyle({}, { cartoon: styleConfig });
-                viewer.addSurface($3Dmol.SurfaceType.VDW, { opacity: 0.85 });
+            }
+
+            // Add surface overlay if enabled (independent of main style)
+            if (showSurface) {
+                viewer.addSurface($3Dmol.SurfaceType.VDW, surfaceConfig);
             }
 
             // Zoom to fit structure
