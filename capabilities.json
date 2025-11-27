@@ -4,13 +4,19 @@
             "displayName": "Protein Structure",
             "name": "proteinData",
             "kind": "Grouping",
-            "description": "PDB or CIF format protein structure data"
+            "description": "Molecular structure data (PDB, CIF, MOL2, SDF, XYZ, or Cube format)"
         },
         {
             "displayName": "Title",
             "name": "titleData",
             "kind": "Grouping",
-            "description": "Optional title/name for each protein structure"
+            "description": "Optional title/name for each structure"
+        },
+        {
+            "displayName": "Format Type",
+            "name": "formatData",
+            "kind": "Grouping",
+            "description": "Optional format type (pdb, cif, mol2, sdf, xyz, cube). If not provided, format is auto-detected."
         }
     ],
     "objects": {
@@ -109,6 +115,57 @@
                     }
                 }
             }
+        },
+        "chainColors": {
+            "displayName": "Chain Colors",
+            "properties": {
+                "chainAColor": {
+                    "displayName": "Chain A Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainBColor": {
+                    "displayName": "Chain B Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainCColor": {
+                    "displayName": "Chain C Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainDColor": {
+                    "displayName": "Chain D Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "useCustomChainColors": {
+                    "displayName": "Use Custom Chain Colors",
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
         }
     },
     "dataViewMappings": [
@@ -124,6 +181,11 @@
                         {
                             "for": {
                                 "in": "titleData"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "formatData"
                             }
                         }
                     ],

@@ -152,6 +152,46 @@ class SurfaceSettingsCard extends FormattingSettingsCard {
 }
 
 /**
+ * Chain Colors Formatting Card
+ */
+class ChainColorsCard extends FormattingSettingsCard {
+    useCustomChainColors = new formattingSettings.ToggleSwitch({
+        name: "useCustomChainColors",
+        displayName: "Use Custom Chain Colors",
+        description: "Enable custom colors for each chain",
+        value: false
+    });
+
+    chainAColor = new formattingSettings.ColorPicker({
+        name: "chainAColor",
+        displayName: "Chain A Color",
+        value: { value: "#FF0000" }
+    });
+
+    chainBColor = new formattingSettings.ColorPicker({
+        name: "chainBColor",
+        displayName: "Chain B Color",
+        value: { value: "#00FF00" }
+    });
+
+    chainCColor = new formattingSettings.ColorPicker({
+        name: "chainCColor",
+        displayName: "Chain C Color",
+        value: { value: "#0000FF" }
+    });
+
+    chainDColor = new formattingSettings.ColorPicker({
+        name: "chainDColor",
+        displayName: "Chain D Color",
+        value: { value: "#FFFF00" }
+    });
+
+    name: string = "chainColors";
+    displayName: string = "Chain Colors";
+    slices: Array<FormattingSettingsSlice> = [this.useCustomChainColors, this.chainAColor, this.chainBColor, this.chainCColor, this.chainDColor];
+}
+
+/**
 * visual settings model class
 *
 */
@@ -160,6 +200,7 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     displaySettingsCard = new DisplaySettingsCard();
     gridSettingsCard = new GridSettingsCard();
     surfaceSettingsCard = new SurfaceSettingsCard();
+    chainColorsCard = new ChainColorsCard();
 
-    cards = [this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard];
+    cards = [this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard, this.chainColorsCard];
 }

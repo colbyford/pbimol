@@ -1,17 +1,19 @@
 # 3Dmol.js Power BI Custom Visual
 
-A Power BI custom visual that allows users to visualize protein structure data using the 3Dmol.js viewer.
+A Power BI custom visual that allows users to visualize molecular structure data using the 3Dmol.js viewer.
 
 <h3 align="right">Tuple, LLC</h3>
 
 ## Features
 
-- **Accepts PDB and CIF format data**: Load protein structures directly from your Power BI data model
-- **Small Multiples Support**: Display multiple protein structures in a grid layout
+- **Multiple format support**: Load structures in PDB, CIF, MOL2, SDF, XYZ, or Cube format
+- **Small Multiples Support**: Display multiple structures in a grid layout
 - **Multiple visualization styles**: Choose from Cartoon, Stick, Line, Cross, Sphere, and Surface representations
 - **Flexible coloring schemes**: Color by Chain, Residue, Spectrum, Secondary Structure, or use default colors
+- **Custom chain colors**: Define specific colors for chains A, B, C, and D
+- **Surface overlay**: Add translucent molecular surfaces with independent color control
 - **Customizable display**: Adjust background color, enable auto-rotation, and configure grid layout
-- **Automatic format detection**: Automatically detects whether the input is PDB or CIF format
+- **Automatic format detection**: Automatically detects structure format, or specify explicitly
 
 ## Installation
 
@@ -25,19 +27,29 @@ A Power BI custom visual that allows users to visualize protein structure data u
 
 ### Data Requirements
 
-The visual expects a column containing protein structure data in either PDB or CIF format as text strings. Multiple rows will be displayed as a grid of protein structures.
+The visual expects a column containing molecular structure data as text strings. Multiple rows will be displayed as a grid of structures.
 
 1. Add the visual to your report canvas
-2. Drag a field containing PDB or CIF data to the **Protein Structure** data role
+2. Drag a field containing structure data to the **Protein Structure** data role
 3. Optionally, drag a field containing molecule names to the **Title** data role
-4. The protein structure(s) will be rendered automatically in a grid layout
+4. Optionally, drag a field containing format types (pdb, cif, mol2, sdf, xyz, cube) to the **Format Type** data role
+5. The structure(s) will be rendered automatically in a grid layout
+
+### Supported Formats
+
+- **PDB** - Protein Data Bank format
+- **CIF** - Crystallographic Information File (mmCIF)
+- **MOL2** - Tripos MOL2 format
+- **SDF** - Structure Data File
+- **XYZ** - XYZ coordinate format
+- **Cube** - Gaussian Cube format
 
 ### Formatting Options
 
 Access these settings in the Format pane:
 
 #### Display Settings
-- **Protein Style**: Choose how the protein is rendered (Cartoon, Stick, Line, Cross, Sphere, Surface)
+- **Protein Style**: Choose how the structure is rendered (Cartoon, Stick, Line, Cross, Sphere, Surface)
 - **Color Scheme**: Select coloring method (By Chain, By Residue, Spectrum, Secondary Structure, Default)
 - **Background Color**: Set the viewer background color
 - **Auto Rotate**: Enable/disable automatic rotation of the structure
@@ -50,6 +62,10 @@ Access these settings in the Format pane:
 - **Show Surface**: Toggle to overlay a translucent molecular surface on the structure
 - **Surface Opacity**: Adjust the transparency of the surface (0-100%)
 - **Surface Color Scheme**: Select coloring method for the surface (independent from the main style color)
+
+#### Chain Colors
+- **Use Custom Chain Colors**: Enable custom coloring for individual chains
+- **Chain A/B/C/D Color**: Color pickers to set specific colors for each chain
 
 ## Development
 

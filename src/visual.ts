@@ -38,6 +38,9 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
+// Supported molecular structure formats
+const SUPPORTED_FORMATS = ['pdb', 'cif', 'mol2', 'sdf', 'xyz', 'cube'];
+
 // Common PDB record types for format detection
 const PDB_RECORD_TYPES = ['HEADER', 'ATOM', 'HETATM', 'MODEL', 'COMPND', 'SOURCE', 'TITLE', 'REMARK', 'SEQRES', 'CRYST1'];
 
@@ -109,7 +112,15 @@ export class Visual implements IVisual {
     /**
      * Detect the format of molecular structure data
      */
-    private detectFormat(data: string): string {
+    private detectFormat(data: string, providedFormat?: string): string {
+        // If format is provided and valid, use it
+        if (providedFormat) {
+            const format = providedFormat.toLowerCase().trim();
+            if (SUPPORTED_FORMATS.includes(format)) {
+                return format;
+            }
+        }
+        
         const trimmed = data.trim();
         
         // CIF format detection - check for mmCIF/PDBx markers
@@ -120,9 +131,33 @@ export class Visual implements IVisual {
             return "cif";
         }
         
+        // MOL2 format detection
+        if (trimmed.includes("@<TRIPOS>") || trimmed.includes("@<tripos>")) {
+            return "mol2";
+        }
+        
+        // SDF format detection - check for V2000 or V3000 format markers
+        if (trimmed.includes("V2000") || trimmed.includes("V3000") || trimmed.includes("M  END")) {
+            return "sdf";
+        }
+        
+        // XYZ format detection - first line is atom count, second is comment
+        const lines = trimmed.split('\n');
+        if (lines.length >= 2) {
+            const firstLine = lines[0].trim();
+            // XYZ files start with a number (atom count)
+            if (/^\d+$/.test(firstLine)) {
+                return "xyz";
+            }
+        }
+        
+        // Cube format detection
+        if (trimmed.includes("CUBE FILE") || (lines.length > 6 && /^\s*-?\d+\s+-?\d+\.\d+\s+-?\d+\.\d+\s+-?\d+\.\d+/.test(lines[2]))) {
+            return "cube";
+        }
+        
         // PDB format - check for common PDB record types
         // Both full PDB files (with HEADER) and ATOM-only files should be detected
-        const lines = trimmed.split('\n');
         for (const line of lines.slice(0, 20)) { // Check first 20 lines
             const recordType = line.substring(0, 6).trim().toUpperCase();
             if (PDB_RECORD_TYPES.includes(recordType)) {
@@ -137,12 +172,18 @@ export class Visual implements IVisual {
     /**
      * Validate that the structure data contains actual molecular data
      */
-    private isValidStructureData(data: string): boolean {
+    private isValidStructureData(data: string, providedFormat?: string): boolean {
         if (!data || data.length === 0) {
             return false;
         }
         
         const normalized = this.normalizePdbData(data);
+        const format = this.detectFormat(normalized, providedFormat);
+        
+        // For explicitly provided formats, trust that the data is valid
+        if (providedFormat && SUPPORTED_FORMATS.includes(providedFormat.toLowerCase().trim())) {
+            return normalized.length > 10; // Basic sanity check
+        }
         
         // Check for PDB ATOM/HETATM records
         if (normalized.includes('ATOM') || normalized.includes('HETATM')) {
@@ -151,6 +192,27 @@ export class Visual implements IVisual {
         
         // Check for CIF atom site data
         if (normalized.includes('_atom_site.')) {
+            return true;
+        }
+        
+        // Check for MOL2 atom section
+        if (normalized.includes('@<TRIPOS>ATOM') || normalized.includes('@<tripos>atom')) {
+            return true;
+        }
+        
+        // Check for SDF/MOL format
+        if (normalized.includes('V2000') || normalized.includes('V3000')) {
+            return true;
+        }
+        
+        // Check for XYZ format (starts with number)
+        const lines = normalized.split('\n');
+        if (lines.length >= 3 && /^\d+$/.test(lines[0].trim())) {
+            return true;
+        }
+        
+        // Check for Cube format
+        if (format === "cube") {
             return true;
         }
         
@@ -249,10 +311,16 @@ export class Visual implements IVisual {
         const showSurface = this.formattingSettings.surfaceSettingsCard.showSurface.value;
         const surfaceOpacity = this.formattingSettings.surfaceSettingsCard.surfaceOpacity.value / 100;
         const surfaceColorScheme = this.formattingSettings.surfaceSettingsCard.surfaceColorScheme.value.value;
+        const useCustomChainColors = this.formattingSettings.chainColorsCard.useCustomChainColors.value;
+        const chainAColor = this.formattingSettings.chainColorsCard.chainAColor.value.value;
+        const chainBColor = this.formattingSettings.chainColorsCard.chainBColor.value.value;
+        const chainCColor = this.formattingSettings.chainColorsCard.chainCColor.value.value;
+        const chainDColor = this.formattingSettings.chainColorsCard.chainDColor.value.value;
 
-        // Determine column indices for protein data and title
+        // Determine column indices for protein data, title, and format
         let proteinIndex = -1;
         let titleIndex = -1;
+        let formatIndex = -1;
         
         if (dataView.table.columns && dataView.table.columns.length > 0) {
             for (let i = 0; i < dataView.table.columns.length; i++) {
@@ -263,6 +331,9 @@ export class Visual implements IVisual {
                     }
                     if (roles["titleData"] && titleIndex === -1) {
                         titleIndex = i;
+                    }
+                    if (roles["formatData"] && formatIndex === -1) {
+                        formatIndex = i;
                     }
                 }
             }
@@ -279,20 +350,26 @@ export class Visual implements IVisual {
             return;
         }
 
-        // Filter valid protein data rows and collect titles
-        const validRows: { structure: string; title: string }[] = [];
+        // Filter valid protein data rows and collect titles and formats
+        const validRows: { structure: string; title: string; format: string }[] = [];
         for (const row of dataView.table.rows) {
             const proteinData = row[proteinIndex];
             if (proteinData !== null && proteinData !== undefined) {
                 const structureData = String(proteinData).trim();
                 if (structureData !== "" && structureData !== "null" && structureData !== "undefined") {
-                    if (this.isValidStructureData(structureData)) {
+                    // Get format if available
+                    let format = "";
+                    if (formatIndex >= 0 && row[formatIndex] !== null && row[formatIndex] !== undefined) {
+                        format = String(row[formatIndex]).trim().toLowerCase();
+                    }
+                    
+                    if (this.isValidStructureData(structureData, format)) {
                         // Get title if available
                         let title = "";
                         if (titleIndex >= 0 && row[titleIndex] !== null && row[titleIndex] !== undefined) {
                             title = String(row[titleIndex]).trim();
                         }
-                        validRows.push({ structure: structureData, title: title });
+                        validRows.push({ structure: structureData, title: title, format: format });
                     }
                 }
             }
@@ -334,12 +411,20 @@ export class Visual implements IVisual {
             surfaceConfig.colorscheme = "ssJmol";
         }
 
+        // Custom chain color mapping
+        const chainColorMap: { [key: string]: string } = {
+            'A': chainAColor,
+            'B': chainBColor,
+            'C': chainCColor,
+            'D': chainDColor
+        };
+
         // Load each structure into its viewer
         for (let i = 0; i < validRows.length; i++) {
             const cell = this.viewers[i];
             const viewer = cell.viewer;
             const structureData = this.normalizePdbData(validRows[i].structure);
-            const format = this.detectFormat(structureData);
+            const format = this.detectFormat(structureData, validRows[i].format);
             
             // Set the title
             cell.titleDiv.textContent = validRows[i].title;
@@ -356,20 +441,43 @@ export class Visual implements IVisual {
                 continue;
             }
 
-            // Apply the main style (excluding "surface" as a main style since we have dedicated surface toggle)
-            if (style === "cartoon") {
-                viewer.setStyle({}, { cartoon: styleConfig });
-            } else if (style === "stick") {
-                viewer.setStyle({}, { stick: styleConfig });
-            } else if (style === "line") {
-                viewer.setStyle({}, { line: styleConfig });
-            } else if (style === "cross") {
-                viewer.setStyle({}, { cross: styleConfig });
-            } else if (style === "sphere") {
-                viewer.setStyle({}, { sphere: styleConfig });
-            } else if (style === "surface") {
-                // When main style is "surface", just show cartoon as base (surface overlay is controlled separately)
-                viewer.setStyle({}, { cartoon: styleConfig });
+            // Apply the main style
+            if (useCustomChainColors) {
+                // Apply custom colors for each chain
+                for (const chain of ['A', 'B', 'C', 'D']) {
+                    const chainStyle: any = { ...styleConfig };
+                    chainStyle.color = chainColorMap[chain];
+                    
+                    if (style === "cartoon") {
+                        viewer.setStyle({ chain: chain }, { cartoon: chainStyle });
+                    } else if (style === "stick") {
+                        viewer.setStyle({ chain: chain }, { stick: chainStyle });
+                    } else if (style === "line") {
+                        viewer.setStyle({ chain: chain }, { line: chainStyle });
+                    } else if (style === "cross") {
+                        viewer.setStyle({ chain: chain }, { cross: chainStyle });
+                    } else if (style === "sphere") {
+                        viewer.setStyle({ chain: chain }, { sphere: chainStyle });
+                    } else if (style === "surface") {
+                        viewer.setStyle({ chain: chain }, { cartoon: chainStyle });
+                    }
+                }
+            } else {
+                // Use color scheme for all atoms
+                if (style === "cartoon") {
+                    viewer.setStyle({}, { cartoon: styleConfig });
+                } else if (style === "stick") {
+                    viewer.setStyle({}, { stick: styleConfig });
+                } else if (style === "line") {
+                    viewer.setStyle({}, { line: styleConfig });
+                } else if (style === "cross") {
+                    viewer.setStyle({}, { cross: styleConfig });
+                } else if (style === "sphere") {
+                    viewer.setStyle({}, { sphere: styleConfig });
+                } else if (style === "surface") {
+                    // When main style is "surface", just show cartoon as base (surface overlay is controlled separately)
+                    viewer.setStyle({}, { cartoon: styleConfig });
+                }
             }
 
             // Add surface overlay if enabled (independent of main style)
