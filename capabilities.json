@@ -1,10 +1,16 @@
 {
     "dataRoles": [
         {
-            "displayName": "Protein Structure",
+            "displayName": "Structure String",
             "name": "proteinData",
             "kind": "Grouping",
             "description": "Molecular structure data (PDB, CIF, MOL2, SDF, XYZ, or Cube format)"
+        },
+        {
+            "displayName": "Structure File Path",
+            "name": "filePathData",
+            "kind": "Grouping",
+            "description": "Optional file path or URL to a structure file"
         },
         {
             "displayName": "Title",
@@ -17,12 +23,6 @@
             "name": "formatData",
             "kind": "Grouping",
             "description": "Optional format type (pdb, cif, mol2, sdf, xyz, cube). If not provided, format is auto-detected."
-        },
-        {
-            "displayName": "File Path",
-            "name": "filePathData",
-            "kind": "Grouping",
-            "description": "Optional file path or URL to a structure file"
         }
     ],
     "objects": {
@@ -207,17 +207,17 @@
                         },
                         {
                             "for": {
+                                "in": "filePathData"
+                            }
+                        },
+                        {
+                            "for": {
                                 "in": "titleData"
                             }
                         },
                         {
                             "for": {
                                 "in": "formatData"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "filePathData"
                             }
                         }
                     ],
