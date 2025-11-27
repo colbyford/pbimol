@@ -60,7 +60,7 @@ class DisplaySettingsCard extends FormattingSettingsCard {
             { value: "ss", displayName: "Secondary Structure" },
             { value: "default", displayName: "Default" }
         ],
-        value: { value: "chain", displayName: "By Chain" }
+        value: { value: "default", displayName: "Default" }
     });
 
     backgroundColor = new formattingSettings.ColorPicker({
@@ -85,19 +85,19 @@ class DisplaySettingsCard extends FormattingSettingsCard {
     chainAColor = new formattingSettings.ColorPicker({
         name: "chainAColor",
         displayName: "Chain A Color",
-        value: { value: "#FF0000" }
+        value: { value: "#00FF00" }
     });
 
     chainBColor = new formattingSettings.ColorPicker({
         name: "chainBColor",
         displayName: "Chain B Color",
-        value: { value: "#00FF00" }
+        value: { value: "#00FFFF" }
     });
 
     chainCColor = new formattingSettings.ColorPicker({
         name: "chainCColor",
         displayName: "Chain C Color",
-        value: { value: "#0000FF" }
+        value: { value: "#FF00FF" }
     });
 
     chainDColor = new formattingSettings.ColorPicker({
@@ -178,7 +178,7 @@ class SurfaceSettingsCard extends FormattingSettingsCard {
             { value: "custom", displayName: "Custom Color" },
             { value: "default", displayName: "Default" }
         ],
-        value: { value: "chain", displayName: "By Chain" }
+        value: { value: "default", displayName: "Default" }
     });
 
     surfaceColor = new formattingSettings.ColorPicker({
