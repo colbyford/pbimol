@@ -43,6 +43,8 @@ const PDB_RECORD_TYPES = ['HEADER', 'ATOM', 'HETATM', 'MODEL', 'COMPND', 'SOURCE
 
 interface ViewerCell {
     container: HTMLElement;
+    viewerDiv: HTMLElement;
+    titleDiv: HTMLElement;
     viewer: $3Dmol.GLViewer;
 }
 
@@ -73,11 +75,21 @@ export class Visual implements IVisual {
      * Normalize PDB data by ensuring proper line endings and removing problematic characters
      */
     private normalizePdbData(data: string): string {
+        if (!data) {
+            return "";
+        }
+        
         // Handle various line ending formats and normalize to LF
         let normalized = data.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         
-        // Remove any null characters or other control characters (except newline and tab)
+        // Remove BOM (Byte Order Mark) if present
+        normalized = normalized.replace(/^\uFEFF/, '');
+        
+        // Remove any null characters or other control characters (except newline, tab, and space)
         normalized = normalized.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        
+        // Remove non-breaking spaces and other Unicode whitespace that may cause issues
+        normalized = normalized.replace(/\u00A0/g, ' ');
         
         return normalized.trim();
     }
@@ -136,7 +148,7 @@ export class Visual implements IVisual {
     /**
      * Create or reuse viewer cells for the grid
      */
-    private setupViewerGrid(count: number, columns: number, backgroundColor: string): void {
+    private setupViewerGrid(count: number, columns: number, backgroundColor: string, showTitles: boolean): void {
         // Calculate actual columns and rows
         const cols = columns > 0 ? columns : Math.ceil(Math.sqrt(count));
         const rows = Math.ceil(count / cols);
@@ -161,16 +173,39 @@ export class Visual implements IVisual {
             container.style.height = "100%";
             container.style.minHeight = "50px";
             container.style.minWidth = "50px";
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.overflow = "hidden";
             this.gridContainer.appendChild(container);
             
-            const viewer = $3Dmol.createViewer(container, {});
+            // Create title div
+            const titleDiv = document.createElement("div");
+            titleDiv.style.textAlign = "center";
+            titleDiv.style.padding = "2px 4px";
+            titleDiv.style.fontSize = "12px";
+            titleDiv.style.fontWeight = "bold";
+            titleDiv.style.overflow = "hidden";
+            titleDiv.style.textOverflow = "ellipsis";
+            titleDiv.style.whiteSpace = "nowrap";
+            titleDiv.style.flexShrink = "0";
+            container.appendChild(titleDiv);
             
-            this.viewers.push({ container, viewer });
+            // Create viewer div
+            const viewerDiv = document.createElement("div");
+            viewerDiv.style.flex = "1";
+            viewerDiv.style.position = "relative";
+            viewerDiv.style.minHeight = "0";
+            container.appendChild(viewerDiv);
+            
+            const viewer = $3Dmol.createViewer(viewerDiv, {});
+            
+            this.viewers.push({ container, viewerDiv, titleDiv, viewer });
         }
         
-        // Update all viewer backgrounds
+        // Update all viewer backgrounds and title visibility
         for (const cell of this.viewers) {
             cell.viewer.setBackgroundColor(backgroundColor);
+            cell.titleDiv.style.display = showTitles ? "block" : "none";
         }
     }
 
@@ -198,16 +233,51 @@ export class Visual implements IVisual {
         const backgroundColor = this.formattingSettings.displaySettingsCard.backgroundColor.value.value;
         const spin = this.formattingSettings.displaySettingsCard.spin.value;
         const columns = this.formattingSettings.gridSettingsCard.columns.value;
+        const showTitles = this.formattingSettings.gridSettingsCard.showTitles.value;
 
-        // Filter valid protein data rows
-        const validRows: string[] = [];
+        // Determine column indices for protein data and title
+        let proteinIndex = -1;
+        let titleIndex = -1;
+        
+        if (dataView.table.columns && dataView.table.columns.length > 0) {
+            for (let i = 0; i < dataView.table.columns.length; i++) {
+                const roles = dataView.table.columns[i].roles;
+                if (roles) {
+                    if (roles["proteinData"] && proteinIndex === -1) {
+                        proteinIndex = i;
+                    }
+                    if (roles["titleData"] && titleIndex === -1) {
+                        titleIndex = i;
+                    }
+                }
+            }
+        }
+        
+        // If no explicit protein column found, use first column if it exists
+        if (proteinIndex === -1 && dataView.table.columns && dataView.table.columns.length > 0) {
+            proteinIndex = 0;
+        }
+        
+        // Exit if no valid protein column
+        if (proteinIndex === -1) {
+            console.log("No protein data column found");
+            return;
+        }
+
+        // Filter valid protein data rows and collect titles
+        const validRows: { structure: string; title: string }[] = [];
         for (const row of dataView.table.rows) {
-            const proteinData = row[0];
+            const proteinData = row[proteinIndex];
             if (proteinData !== null && proteinData !== undefined) {
                 const structureData = String(proteinData).trim();
                 if (structureData !== "" && structureData !== "null" && structureData !== "undefined") {
                     if (this.isValidStructureData(structureData)) {
-                        validRows.push(structureData);
+                        // Get title if available
+                        let title = "";
+                        if (titleIndex >= 0 && row[titleIndex] !== null && row[titleIndex] !== undefined) {
+                            title = String(row[titleIndex]).trim();
+                        }
+                        validRows.push({ structure: structureData, title: title });
                     }
                 }
             }
@@ -223,7 +293,7 @@ export class Visual implements IVisual {
         const viewportHeight = options.viewport.height;
 
         // Setup the grid of viewers
-        this.setupViewerGrid(validRows.length, columns, backgroundColor);
+        this.setupViewerGrid(validRows.length, columns, backgroundColor, showTitles);
 
         // Configure style
         const styleConfig: any = {};
@@ -239,9 +309,13 @@ export class Visual implements IVisual {
 
         // Load each structure into its viewer
         for (let i = 0; i < validRows.length; i++) {
-            const viewer = this.viewers[i].viewer;
-            const structureData = this.normalizePdbData(validRows[i]);
+            const cell = this.viewers[i];
+            const viewer = cell.viewer;
+            const structureData = this.normalizePdbData(validRows[i].structure);
             const format = this.detectFormat(structureData);
+            
+            // Set the title
+            cell.titleDiv.textContent = validRows[i].title;
             
             // Clear previous models
             viewer.removeAllModels();

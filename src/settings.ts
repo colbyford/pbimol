@@ -103,9 +103,16 @@ class GridSettingsCard extends FormattingSettingsCard {
         value: 0
     });
 
+    showTitles = new formattingSettings.ToggleSwitch({
+        name: "showTitles",
+        displayName: "Show Titles",
+        description: "Display molecule titles in each cell",
+        value: true
+    });
+
     name: string = "gridSettings";
     displayName: string = "Grid Settings";
-    slices: Array<FormattingSettingsSlice> = [this.columns];
+    slices: Array<FormattingSettingsSlice> = [this.columns, this.showTitles];
 }
 
 /**

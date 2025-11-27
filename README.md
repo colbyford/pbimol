@@ -29,7 +29,8 @@ The visual expects a column containing protein structure data in either PDB or C
 
 1. Add the visual to your report canvas
 2. Drag a field containing PDB or CIF data to the **Protein Structure** data role
-3. The protein structure(s) will be rendered automatically in a grid layout
+3. Optionally, drag a field containing molecule names to the **Title** data role
+4. The protein structure(s) will be rendered automatically in a grid layout
 
 ### Formatting Options
 
@@ -43,6 +44,7 @@ Access these settings in the Format pane:
 
 #### Grid Settings
 - **Columns**: Number of columns in the grid (set to 0 for automatic layout based on the number of structures)
+- **Show Titles**: Enable/disable display of molecule titles above each structure
 
 ## Development
 

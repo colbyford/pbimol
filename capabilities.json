@@ -5,6 +5,12 @@
             "name": "proteinData",
             "kind": "Grouping",
             "description": "PDB or CIF format protein structure data"
+        },
+        {
+            "displayName": "Title",
+            "name": "titleData",
+            "kind": "Grouping",
+            "description": "Optional title/name for each protein structure"
         }
     ],
     "objects": {
@@ -63,6 +69,13 @@
                     "type": {
                         "numeric": true
                     }
+                },
+                "showTitles": {
+                    "displayName": "Show Titles",
+                    "description": "Display molecule titles in each cell",
+                    "type": {
+                        "bool": true
+                    }
                 }
             }
         }
@@ -75,6 +88,11 @@
                         {
                             "for": {
                                 "in": "proteinData"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "titleData"
                             }
                         }
                     ],
