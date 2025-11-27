@@ -60,7 +60,7 @@ class DisplaySettingsCard extends FormattingSettingsCard {
             { value: "ss", displayName: "Secondary Structure" },
             { value: "default", displayName: "Default" }
         ],
-        value: { value: "chain", displayName: "By Chain" }
+        value: { value: "default", displayName: "Default" }
     });
 
     backgroundColor = new formattingSettings.ColorPicker({
@@ -75,21 +75,122 @@ class DisplaySettingsCard extends FormattingSettingsCard {
         value: false
     });
 
-    // quality = new formattingSettings.ItemDropdown({
-    //     name: "quality",
-    //     displayName: "Rendering Quality",
-    //     items: [
-    //         { value: "low", displayName: "Low" },
-    //         { value: "medium", displayName: "Medium" },
-    //         { value: "high", displayName: "High" }
-    //     ],
-    //     value: { value: "medium", displayName: "Medium" }
-    // });
+    useCustomChainColors = new formattingSettings.ToggleSwitch({
+        name: "useCustomChainColors",
+        displayName: "Use Custom Chain Colors",
+        description: "Enable custom colors for each chain",
+        value: false
+    });
+
+    chainAColor = new formattingSettings.ColorPicker({
+        name: "chainAColor",
+        displayName: "Chain A Color",
+        value: { value: "#00FF00" }
+    });
+
+    chainBColor = new formattingSettings.ColorPicker({
+        name: "chainBColor",
+        displayName: "Chain B Color",
+        value: { value: "#00FFFF" }
+    });
+
+    chainCColor = new formattingSettings.ColorPicker({
+        name: "chainCColor",
+        displayName: "Chain C Color",
+        value: { value: "#FF00FF" }
+    });
+
+    chainDColor = new formattingSettings.ColorPicker({
+        name: "chainDColor",
+        displayName: "Chain D Color",
+        value: { value: "#FFFF00" }
+    });
 
     name: string = "displaySettings";
     displayName: string = "Display Settings";
-    // slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin, this.quality];
-    slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin];
+    slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin, this.useCustomChainColors, this.chainAColor, this.chainBColor, this.chainCColor, this.chainDColor];
+}
+
+/**
+ * Grid Settings Formatting Card
+ */
+class GridSettingsCard extends FormattingSettingsCard {
+    columns = new formattingSettings.NumUpDown({
+        name: "columns",
+        displayName: "Columns",
+        description: "Number of columns in the grid (0 for auto)",
+        value: 0
+    });
+
+    showTitles = new formattingSettings.ToggleSwitch({
+        name: "showTitles",
+        displayName: "Show Titles",
+        description: "Display molecule titles in each cell",
+        value: true
+    });
+
+    titlePosition = new formattingSettings.ItemDropdown({
+        name: "titlePosition",
+        displayName: "Title Position",
+        description: "Position of the title in each cell",
+        items: [
+            { value: "top-left", displayName: "Top Left" },
+            { value: "top-center", displayName: "Top Center" },
+            { value: "top-right", displayName: "Top Right" },
+            { value: "bottom-left", displayName: "Bottom Left" },
+            { value: "bottom-center", displayName: "Bottom Center" },
+            { value: "bottom-right", displayName: "Bottom Right" }
+        ],
+        value: { value: "top-center", displayName: "Top Center" }
+    });
+
+    name: string = "gridSettings";
+    displayName: string = "Grid Settings";
+    slices: Array<FormattingSettingsSlice> = [this.columns, this.showTitles, this.titlePosition];
+}
+
+/**
+ * Surface Settings Formatting Card
+ */
+class SurfaceSettingsCard extends FormattingSettingsCard {
+    showSurface = new formattingSettings.ToggleSwitch({
+        name: "showSurface",
+        displayName: "Show Surface",
+        description: "Display a translucent surface overlay on the structure",
+        value: false
+    });
+
+    surfaceOpacity = new formattingSettings.Slider({
+        name: "surfaceOpacity",
+        displayName: "Surface Opacity",
+        description: "Opacity of the surface (0-100%)",
+        value: 70
+    });
+
+    surfaceColorScheme = new formattingSettings.ItemDropdown({
+        name: "surfaceColorScheme",
+        displayName: "Surface Color Scheme",
+        items: [
+            { value: "chain", displayName: "By Chain" },
+            { value: "residue", displayName: "By Residue" },
+            { value: "spectrum", displayName: "Spectrum" },
+            { value: "ss", displayName: "Secondary Structure" },
+            { value: "custom", displayName: "Custom Color" },
+            { value: "default", displayName: "Default" }
+        ],
+        value: { value: "default", displayName: "Default" }
+    });
+
+    surfaceColor = new formattingSettings.ColorPicker({
+        name: "surfaceColor",
+        displayName: "Surface Color",
+        description: "Custom surface color (when Color Scheme is Custom)",
+        value: { value: "#808080" }
+    });
+
+    name: string = "surfaceSettings";
+    displayName: string = "Surface Settings";
+    slices: Array<FormattingSettingsSlice> = [this.showSurface, this.surfaceOpacity, this.surfaceColorScheme, this.surfaceColor];
 }
 
 /**
@@ -99,6 +200,8 @@ class DisplaySettingsCard extends FormattingSettingsCard {
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // Create formatting settings model formatting cards
     displaySettingsCard = new DisplaySettingsCard();
+    gridSettingsCard = new GridSettingsCard();
+    surfaceSettingsCard = new SurfaceSettingsCard();
 
-    cards = [this.displaySettingsCard];
+    cards = [this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard];
 }

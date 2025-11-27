@@ -1,10 +1,28 @@
 {
     "dataRoles": [
         {
-            "displayName": "Protein Structure",
+            "displayName": "Structure String",
             "name": "proteinData",
             "kind": "Grouping",
-            "description": "PDB or CIF format protein structure data"
+            "description": "Molecular structure data (PDB, CIF, MOL2, SDF, XYZ, or Cube format)"
+        },
+        {
+            "displayName": "Structure File Path",
+            "name": "filePathData",
+            "kind": "Grouping",
+            "description": "Optional file path or URL to a structure file"
+        },
+        {
+            "displayName": "Title",
+            "name": "titleData",
+            "kind": "Grouping",
+            "description": "Optional title/name for each structure"
+        },
+        {
+            "displayName": "Format Type",
+            "name": "formatData",
+            "kind": "Grouping",
+            "description": "Optional format type (pdb, cif, mol2, sdf, xyz, cube). If not provided, format is auto-detected."
         }
     ],
     "objects": {
@@ -51,6 +69,128 @@
                     "type": {
                         "bool": true
                     }
+                },
+                "useCustomChainColors": {
+                    "displayName": "Use Custom Chain Colors",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "chainAColor": {
+                    "displayName": "Chain A Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainBColor": {
+                    "displayName": "Chain B Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainCColor": {
+                    "displayName": "Chain C Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainDColor": {
+                    "displayName": "Chain D Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "gridSettings": {
+            "displayName": "Grid Settings",
+            "properties": {
+                "columns": {
+                    "displayName": "Columns",
+                    "description": "Number of columns in the grid (0 for auto)",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "showTitles": {
+                    "displayName": "Show Titles",
+                    "description": "Display molecule titles in each cell",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "titlePosition": {
+                    "displayName": "Title Position",
+                    "description": "Position of the title in each cell",
+                    "type": {
+                        "enumeration": [
+                            { "value": "top-left", "displayName": "Top Left" },
+                            { "value": "top-center", "displayName": "Top Center" },
+                            { "value": "top-right", "displayName": "Top Right" },
+                            { "value": "bottom-left", "displayName": "Bottom Left" },
+                            { "value": "bottom-center", "displayName": "Bottom Center" },
+                            { "value": "bottom-right", "displayName": "Bottom Right" }
+                        ]
+                    }
+                }
+            }
+        },
+        "surfaceSettings": {
+            "displayName": "Surface Settings",
+            "properties": {
+                "showSurface": {
+                    "displayName": "Show Surface",
+                    "description": "Display a translucent surface overlay on the structure",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "surfaceOpacity": {
+                    "displayName": "Surface Opacity",
+                    "description": "Opacity of the surface (0-100%)",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "surfaceColorScheme": {
+                    "displayName": "Surface Color Scheme",
+                    "type": {
+                        "enumeration": [
+                            { "value": "chain", "displayName": "By Chain" },
+                            { "value": "residue", "displayName": "By Residue" },
+                            { "value": "spectrum", "displayName": "Spectrum" },
+                            { "value": "ss", "displayName": "Secondary Structure" },
+                            { "value": "custom", "displayName": "Custom Color" },
+                            { "value": "default", "displayName": "Default" }
+                        ]
+                    }
+                },
+                "surfaceColor": {
+                    "displayName": "Surface Color",
+                    "description": "Custom surface color (when Color Scheme is Custom)",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -64,11 +204,26 @@
                             "for": {
                                 "in": "proteinData"
                             }
+                        },
+                        {
+                            "for": {
+                                "in": "filePathData"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "titleData"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "formatData"
+                            }
                         }
                     ],
                     "dataReductionAlgorithm": {
                         "top": {
-                            "count": 1
+                            "count": 100
                         }
                     }
                 }

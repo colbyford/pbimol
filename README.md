@@ -1,16 +1,20 @@
 # 3Dmol.js Power BI Custom Visual
 
-A Power BI custom visual that allows users to visualize protein structure data using the 3Dmol.js viewer.
+A Power BI custom visual that allows users to visualize molecular structure data using the 3Dmol.js viewer.
 
 <h3 align="right">Tuple, LLC</h3>
 
 ## Features
 
-- **Accepts PDB and CIF format data**: Load protein structures directly from your Power BI data model
+- **Multiple format support**: Load structures in PDB, CIF, MOL2, SDF, XYZ, or Cube format
+- **File path support**: Load structures from URLs or file paths
+- **Small Multiples Support**: Display multiple structures in a grid layout with configurable title positions
 - **Multiple visualization styles**: Choose from Cartoon, Stick, Line, Cross, Sphere, and Surface representations
 - **Flexible coloring schemes**: Color by Chain, Residue, Spectrum, Secondary Structure, or use default colors
-- **Customizable display**: Adjust background color, enable auto-rotation, and control rendering quality
-- **Automatic format detection**: Automatically detects whether the input is PDB or CIF format
+- **Custom chain colors**: Define specific colors for chains A, B, C, and D directly in Display Settings
+- **Surface overlay**: Add translucent molecular surfaces with independent color control including custom colors
+- **Customizable display**: Adjust background color, enable auto-rotation, and configure grid layout
+- **Automatic format detection**: Automatically detects structure format, or specify explicitly
 
 ## Installation
 
@@ -24,21 +28,46 @@ A Power BI custom visual that allows users to visualize protein structure data u
 
 ### Data Requirements
 
-The visual expects a single column containing protein structure data in either PDB or CIF format as text strings.
+The visual expects a column containing molecular structure data as text strings, or file paths/URLs to structure files. Multiple rows will be displayed as a grid of structures.
 
 1. Add the visual to your report canvas
-2. Drag a field containing PDB or CIF data to the **Protein Structure** data role
-3. The protein structure will be rendered automatically
+2. Drag a field containing structure data to the **Protein Structure** data role
+3. Optionally, drag a field containing molecule names to the **Title** data role
+4. Optionally, drag a field containing format types (pdb, cif, mol2, sdf, xyz, cube) to the **Format Type** data role
+5. Optionally, drag a field containing file paths or URLs to the **File Path** data role
+6. The structure(s) will be rendered automatically in a grid layout
+
+### Supported Formats
+
+- **PDB** - Protein Data Bank format
+- **CIF** - Crystallographic Information File (mmCIF)
+- **MOL2** - Tripos MOL2 format
+- **SDF** - Structure Data File
+- **XYZ** - XYZ coordinate format
+- **Cube** - Gaussian Cube format
 
 ### Formatting Options
 
 Access these settings in the Format pane:
 
-- **Protein Style**: Choose how the protein is rendered (Cartoon, Stick, Line, Cross, Sphere, Surface)
+#### Display Settings
+- **Protein Style**: Choose how the structure is rendered (Cartoon, Stick, Line, Cross, Sphere, Surface)
 - **Color Scheme**: Select coloring method (By Chain, By Residue, Spectrum, Secondary Structure, Default)
 - **Background Color**: Set the viewer background color
 - **Auto Rotate**: Enable/disable automatic rotation of the structure
-- **Rendering Quality**: Choose rendering quality (Low, Medium, High)
+- **Use Custom Chain Colors**: Enable custom coloring for individual chains
+- **Chain A/B/C/D Color**: Color pickers to set specific colors for each chain
+
+#### Grid Settings
+- **Columns**: Number of columns in the grid (set to 0 for automatic layout based on the number of structures)
+- **Show Titles**: Enable/disable display of molecule titles
+- **Title Position**: Choose where titles appear in each cell (Top Left, Top Center, Top Right, Bottom Left, Bottom Center, Bottom Right)
+
+#### Surface Settings
+- **Show Surface**: Toggle to overlay a translucent molecular surface on the structure
+- **Surface Opacity**: Adjust the transparency of the surface (0-100%)
+- **Surface Color Scheme**: Select coloring method for the surface (By Chain, By Residue, Spectrum, Secondary Structure, Custom Color, Default)
+- **Surface Color**: Custom color picker for the surface (when Color Scheme is Custom)
 
 ## Development
 
@@ -67,4 +96,3 @@ The packaged visual will be available in the `dist/` directory.
 
 - [3Dmol.js](https://3dmol.csb.pitt.edu/) - Molecular visualization library
 - Power BI Visuals API
-
