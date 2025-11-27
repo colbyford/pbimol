@@ -38,9 +38,12 @@ import DataView = powerbi.DataView;
 
 import { VisualFormattingSettingsModel } from "./settings";
 
+// Common PDB record types for format detection
+const PDB_RECORD_TYPES = ['HEADER', 'ATOM', 'HETATM', 'MODEL', 'COMPND', 'SOURCE', 'TITLE', 'REMARK', 'SEQRES', 'CRYST1'];
+
 interface ViewerCell {
     container: HTMLElement;
-    viewer: any;
+    viewer: $3Dmol.GLViewer;
 }
 
 export class Visual implements IVisual {
@@ -98,7 +101,7 @@ export class Visual implements IVisual {
         const lines = trimmed.split('\n');
         for (const line of lines.slice(0, 20)) { // Check first 20 lines
             const recordType = line.substring(0, 6).trim().toUpperCase();
-            if (['HEADER', 'ATOM', 'HETATM', 'MODEL', 'COMPND', 'SOURCE', 'TITLE', 'REMARK', 'SEQRES', 'CRYST1'].includes(recordType)) {
+            if (PDB_RECORD_TYPES.includes(recordType)) {
                 return "pdb";
             }
         }
@@ -133,7 +136,7 @@ export class Visual implements IVisual {
     /**
      * Create or reuse viewer cells for the grid
      */
-    private setupViewerGrid(count: number, columns: number, cellWidth: number, cellHeight: number, backgroundColor: string): void {
+    private setupViewerGrid(count: number, columns: number, backgroundColor: string): void {
         // Calculate actual columns and rows
         const cols = columns > 0 ? columns : Math.ceil(Math.sqrt(count));
         const rows = Math.ceil(count / cols);
@@ -160,9 +163,7 @@ export class Visual implements IVisual {
             container.style.minWidth = "50px";
             this.gridContainer.appendChild(container);
             
-            const viewer = $3Dmol.createViewer(container, {
-                backgroundColor: backgroundColor
-            });
+            const viewer = $3Dmol.createViewer(container, {});
             
             this.viewers.push({ container, viewer });
         }
@@ -217,16 +218,12 @@ export class Visual implements IVisual {
             return;
         }
 
-        // Calculate cell dimensions
+        // Get viewport dimensions
         const viewportWidth = options.viewport.width;
         const viewportHeight = options.viewport.height;
-        const cols = columns > 0 ? columns : Math.ceil(Math.sqrt(validRows.length));
-        const rows = Math.ceil(validRows.length / cols);
-        const cellWidth = viewportWidth / cols;
-        const cellHeight = viewportHeight / rows;
 
         // Setup the grid of viewers
-        this.setupViewerGrid(validRows.length, columns, cellWidth, cellHeight, backgroundColor);
+        this.setupViewerGrid(validRows.length, columns, backgroundColor);
 
         // Configure style
         const styleConfig: any = {};
