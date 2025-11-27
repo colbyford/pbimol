@@ -53,6 +53,18 @@
                     }
                 }
             }
+        },
+        "gridSettings": {
+            "displayName": "Grid Settings",
+            "properties": {
+                "columns": {
+                    "displayName": "Columns",
+                    "description": "Number of columns in the grid (0 for auto)",
+                    "type": {
+                        "numeric": true
+                    }
+                }
+            }
         }
     },
     "dataViewMappings": [
@@ -68,7 +80,7 @@
                     ],
                     "dataReductionAlgorithm": {
                         "top": {
-                            "count": 1
+                            "count": 100
                         }
                     }
                 }

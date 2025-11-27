@@ -93,12 +93,29 @@ class DisplaySettingsCard extends FormattingSettingsCard {
 }
 
 /**
+ * Grid Settings Formatting Card
+ */
+class GridSettingsCard extends FormattingSettingsCard {
+    columns = new formattingSettings.NumUpDown({
+        name: "columns",
+        displayName: "Columns",
+        description: "Number of columns in the grid (0 for auto)",
+        value: 0
+    });
+
+    name: string = "gridSettings";
+    displayName: string = "Grid Settings";
+    slices: Array<FormattingSettingsSlice> = [this.columns];
+}
+
+/**
 * visual settings model class
 *
 */
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // Create formatting settings model formatting cards
     displaySettingsCard = new DisplaySettingsCard();
+    gridSettingsCard = new GridSettingsCard();
 
-    cards = [this.displaySettingsCard];
+    cards = [this.displaySettingsCard, this.gridSettingsCard];
 }
