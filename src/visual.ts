@@ -222,7 +222,7 @@ export class Visual implements IVisual {
     /**
      * Create or reuse viewer cells for the grid
      */
-    private setupViewerGrid(count: number, columns: number, backgroundColor: string, showTitles: boolean): void {
+    private setupViewerGrid(count: number, columns: number, backgroundColor: string, showTitles: boolean, titlePosition: string): void {
         // Calculate actual columns and rows
         const cols = columns > 0 ? columns : Math.ceil(Math.sqrt(count));
         const rows = Math.ceil(count / cols);
@@ -248,26 +248,29 @@ export class Visual implements IVisual {
             container.style.minHeight = "50px";
             container.style.minWidth = "50px";
             container.style.display = "flex";
-            container.style.flexDirection = "column";
             container.style.overflow = "hidden";
             this.gridContainer.appendChild(container);
             
             // Create title div
             const titleDiv = document.createElement("div");
-            titleDiv.style.textAlign = "center";
+            titleDiv.style.position = "absolute";
             titleDiv.style.padding = "2px 4px";
             titleDiv.style.fontSize = "12px";
             titleDiv.style.fontWeight = "bold";
             titleDiv.style.overflow = "hidden";
             titleDiv.style.textOverflow = "ellipsis";
             titleDiv.style.whiteSpace = "nowrap";
-            titleDiv.style.flexShrink = "0";
+            titleDiv.style.zIndex = "10";
+            titleDiv.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
+            titleDiv.style.borderRadius = "2px";
             container.appendChild(titleDiv);
             
             // Create viewer div
             const viewerDiv = document.createElement("div");
             viewerDiv.style.flex = "1";
             viewerDiv.style.position = "relative";
+            viewerDiv.style.width = "100%";
+            viewerDiv.style.height = "100%";
             viewerDiv.style.minHeight = "0";
             container.appendChild(viewerDiv);
             
@@ -276,10 +279,31 @@ export class Visual implements IVisual {
             this.viewers.push({ container, viewerDiv, titleDiv, viewer });
         }
         
-        // Update all viewer backgrounds and title visibility
+        // Update all viewer backgrounds, title visibility and position
         for (const cell of this.viewers) {
             cell.viewer.setBackgroundColor(backgroundColor);
             cell.titleDiv.style.display = showTitles ? "block" : "none";
+            
+            // Set title position
+            cell.titleDiv.style.top = "";
+            cell.titleDiv.style.bottom = "";
+            cell.titleDiv.style.left = "";
+            cell.titleDiv.style.right = "";
+            
+            if (titlePosition.startsWith("top")) {
+                cell.titleDiv.style.top = "2px";
+            } else {
+                cell.titleDiv.style.bottom = "2px";
+            }
+            
+            if (titlePosition.endsWith("left")) {
+                cell.titleDiv.style.left = "2px";
+            } else if (titlePosition.endsWith("right")) {
+                cell.titleDiv.style.right = "2px";
+            } else {
+                cell.titleDiv.style.left = "50%";
+                cell.titleDiv.style.transform = "translateX(-50%)";
+            }
         }
     }
 
@@ -302,25 +326,28 @@ export class Visual implements IVisual {
         }
 
         // Get formatting settings
-        const style = this.formattingSettings.displaySettingsCard.style.value.value;
-        const colorScheme = this.formattingSettings.displaySettingsCard.colorScheme.value.value;
+        const style = String(this.formattingSettings.displaySettingsCard.style.value.value);
+        const colorScheme = String(this.formattingSettings.displaySettingsCard.colorScheme.value.value);
         const backgroundColor = this.formattingSettings.displaySettingsCard.backgroundColor.value.value;
         const spin = this.formattingSettings.displaySettingsCard.spin.value;
+        const useCustomChainColors = this.formattingSettings.displaySettingsCard.useCustomChainColors.value;
+        const chainAColor = this.formattingSettings.displaySettingsCard.chainAColor.value.value;
+        const chainBColor = this.formattingSettings.displaySettingsCard.chainBColor.value.value;
+        const chainCColor = this.formattingSettings.displaySettingsCard.chainCColor.value.value;
+        const chainDColor = this.formattingSettings.displaySettingsCard.chainDColor.value.value;
         const columns = this.formattingSettings.gridSettingsCard.columns.value;
         const showTitles = this.formattingSettings.gridSettingsCard.showTitles.value;
+        const titlePosition = String(this.formattingSettings.gridSettingsCard.titlePosition.value.value);
         const showSurface = this.formattingSettings.surfaceSettingsCard.showSurface.value;
         const surfaceOpacity = this.formattingSettings.surfaceSettingsCard.surfaceOpacity.value / 100;
-        const surfaceColorScheme = this.formattingSettings.surfaceSettingsCard.surfaceColorScheme.value.value;
-        const useCustomChainColors = this.formattingSettings.chainColorsCard.useCustomChainColors.value;
-        const chainAColor = this.formattingSettings.chainColorsCard.chainAColor.value.value;
-        const chainBColor = this.formattingSettings.chainColorsCard.chainBColor.value.value;
-        const chainCColor = this.formattingSettings.chainColorsCard.chainCColor.value.value;
-        const chainDColor = this.formattingSettings.chainColorsCard.chainDColor.value.value;
+        const surfaceColorScheme = String(this.formattingSettings.surfaceSettingsCard.surfaceColorScheme.value.value);
+        const surfaceColor = this.formattingSettings.surfaceSettingsCard.surfaceColor.value.value;
 
-        // Determine column indices for protein data, title, and format
+        // Determine column indices for protein data, title, format, and filepath
         let proteinIndex = -1;
         let titleIndex = -1;
         let formatIndex = -1;
+        let filePathIndex = -1;
         
         if (dataView.table.columns && dataView.table.columns.length > 0) {
             for (let i = 0; i < dataView.table.columns.length; i++) {
@@ -334,6 +361,9 @@ export class Visual implements IVisual {
                     }
                     if (roles["formatData"] && formatIndex === -1) {
                         formatIndex = i;
+                    }
+                    if (roles["filePathData"] && filePathIndex === -1) {
+                        filePathIndex = i;
                     }
                 }
             }
@@ -350,27 +380,47 @@ export class Visual implements IVisual {
             return;
         }
 
-        // Filter valid protein data rows and collect titles and formats
-        const validRows: { structure: string; title: string; format: string }[] = [];
+        // Filter valid protein data rows and collect titles, formats, and filepaths
+        const validRows: { structure: string; title: string; format: string; filePath: string }[] = [];
         for (const row of dataView.table.rows) {
             const proteinData = row[proteinIndex];
+            
+            // Get filepath if available
+            let filePath = "";
+            if (filePathIndex >= 0 && row[filePathIndex] !== null && row[filePathIndex] !== undefined) {
+                filePath = String(row[filePathIndex]).trim();
+            }
+            
+            // Use filepath as structure data if protein data is empty but filepath is provided
+            let structureData = "";
             if (proteinData !== null && proteinData !== undefined) {
-                const structureData = String(proteinData).trim();
+                structureData = String(proteinData).trim();
+            }
+            
+            if ((structureData !== "" && structureData !== "null" && structureData !== "undefined") || filePath !== "") {
+                // Get format if available
+                let format = "";
+                if (formatIndex >= 0 && row[formatIndex] !== null && row[formatIndex] !== undefined) {
+                    format = String(row[formatIndex]).trim().toLowerCase();
+                }
+                
+                // If structure data is valid, use it; otherwise we'll try filepath
                 if (structureData !== "" && structureData !== "null" && structureData !== "undefined") {
-                    // Get format if available
-                    let format = "";
-                    if (formatIndex >= 0 && row[formatIndex] !== null && row[formatIndex] !== undefined) {
-                        format = String(row[formatIndex]).trim().toLowerCase();
-                    }
-                    
                     if (this.isValidStructureData(structureData, format)) {
                         // Get title if available
                         let title = "";
                         if (titleIndex >= 0 && row[titleIndex] !== null && row[titleIndex] !== undefined) {
                             title = String(row[titleIndex]).trim();
                         }
-                        validRows.push({ structure: structureData, title: title, format: format });
+                        validRows.push({ structure: structureData, title: title, format: format, filePath: filePath });
                     }
+                } else if (filePath !== "") {
+                    // If we only have a filepath, add it for later loading
+                    let title = "";
+                    if (titleIndex >= 0 && row[titleIndex] !== null && row[titleIndex] !== undefined) {
+                        title = String(row[titleIndex]).trim();
+                    }
+                    validRows.push({ structure: "", title: title, format: format, filePath: filePath });
                 }
             }
         }
@@ -385,7 +435,7 @@ export class Visual implements IVisual {
         const viewportHeight = options.viewport.height;
 
         // Setup the grid of viewers
-        this.setupViewerGrid(validRows.length, columns, backgroundColor, showTitles);
+        this.setupViewerGrid(validRows.length, columns, backgroundColor, showTitles, titlePosition);
 
         // Configure style color scheme
         const styleConfig: any = {};
@@ -401,7 +451,9 @@ export class Visual implements IVisual {
 
         // Configure surface color scheme (independent from main style)
         const surfaceConfig: any = { opacity: surfaceOpacity };
-        if (surfaceColorScheme === "chain") {
+        if (surfaceColorScheme === "custom") {
+            surfaceConfig.color = surfaceColor;
+        } else if (surfaceColorScheme === "chain") {
             surfaceConfig.colorscheme = "chain";
         } else if (surfaceColorScheme === "residue") {
             surfaceConfig.colorscheme = "amino";
@@ -419,28 +471,8 @@ export class Visual implements IVisual {
             'D': chainDColor
         };
 
-        // Load each structure into its viewer
-        for (let i = 0; i < validRows.length; i++) {
-            const cell = this.viewers[i];
-            const viewer = cell.viewer;
-            const structureData = this.normalizePdbData(validRows[i].structure);
-            const format = this.detectFormat(structureData, validRows[i].format);
-            
-            // Set the title
-            cell.titleDiv.textContent = validRows[i].title;
-            
-            // Clear previous models
-            viewer.removeAllModels();
-            viewer.removeAllSurfaces();
-
-            // Add model to viewer
-            try {
-                viewer.addModel(structureData, format);
-            } catch (error) {
-                console.error(`Error loading structure ${i}:`, error);
-                continue;
-            }
-
+        // Helper function to apply styling to a viewer
+        const applyStyleToViewer = (viewer: $3Dmol.GLViewer, styleConfig: any, useCustomChainColors: boolean, chainColorMap: { [key: string]: string }, style: string, showSurface: boolean, surfaceConfig: any, spin: boolean) => {
             // Apply the main style
             if (useCustomChainColors) {
                 // Apply custom colors for each chain
@@ -475,12 +507,11 @@ export class Visual implements IVisual {
                 } else if (style === "sphere") {
                     viewer.setStyle({}, { sphere: styleConfig });
                 } else if (style === "surface") {
-                    // When main style is "surface", just show cartoon as base (surface overlay is controlled separately)
                     viewer.setStyle({}, { cartoon: styleConfig });
                 }
             }
 
-            // Add surface overlay if enabled (independent of main style)
+            // Add surface overlay if enabled
             if (showSurface) {
                 viewer.addSurface($3Dmol.SurfaceType.VDW, surfaceConfig);
             }
@@ -493,6 +524,47 @@ export class Visual implements IVisual {
 
             // Render the viewer
             viewer.render();
+        };
+
+        // Load each structure into its viewer
+        for (let i = 0; i < validRows.length; i++) {
+            const cell = this.viewers[i];
+            const viewer = cell.viewer;
+            
+            // Set the title
+            cell.titleDiv.textContent = validRows[i].title;
+            
+            // Clear previous models
+            viewer.removeAllModels();
+            viewer.removeAllSurfaces();
+
+            // If we have a filepath but no structure data, try to load from filepath
+            if (validRows[i].structure === "" && validRows[i].filePath !== "") {
+                const filePath = validRows[i].filePath;
+                const format = validRows[i].format || this.detectFormatFromPath(filePath);
+                
+                // Use 3Dmol's built-in file loading (works with URLs)
+                try {
+                    $3Dmol.download(`url:${filePath}`, viewer, { format: format }, () => {
+                        applyStyleToViewer(viewer, styleConfig, useCustomChainColors, chainColorMap, style, showSurface, surfaceConfig, spin);
+                    });
+                } catch (error) {
+                    console.error(`Error loading file ${i} from ${filePath}:`, error);
+                }
+            } else {
+                // Load from structure data
+                const structureData = this.normalizePdbData(validRows[i].structure);
+                const format = this.detectFormat(structureData, validRows[i].format);
+
+                // Add model to viewer
+                try {
+                    viewer.addModel(structureData, format);
+                    applyStyleToViewer(viewer, styleConfig, useCustomChainColors, chainColorMap, style, showSurface, surfaceConfig, spin);
+                } catch (error) {
+                    console.error(`Error loading structure ${i}:`, error);
+                    continue;
+                }
+            }
         }
 
         // Update grid container size
@@ -503,6 +575,20 @@ export class Visual implements IVisual {
         for (const cell of this.viewers) {
             cell.viewer.resize();
         }
+    }
+
+    /**
+     * Detect format from file path extension
+     */
+    private detectFormatFromPath(filePath: string): string {
+        const lowerPath = filePath.toLowerCase();
+        if (lowerPath.endsWith('.pdb')) return 'pdb';
+        if (lowerPath.endsWith('.cif') || lowerPath.endsWith('.mmcif')) return 'cif';
+        if (lowerPath.endsWith('.mol2')) return 'mol2';
+        if (lowerPath.endsWith('.sdf') || lowerPath.endsWith('.mol')) return 'sdf';
+        if (lowerPath.endsWith('.xyz')) return 'xyz';
+        if (lowerPath.endsWith('.cube')) return 'cube';
+        return 'pdb'; // default
     }
 
     /**

@@ -17,6 +17,12 @@
             "name": "formatData",
             "kind": "Grouping",
             "description": "Optional format type (pdb, cif, mol2, sdf, xyz, cube). If not provided, format is auto-detected."
+        },
+        {
+            "displayName": "File Path",
+            "name": "filePathData",
+            "kind": "Grouping",
+            "description": "Optional file path or URL to a structure file"
         }
     ],
     "objects": {
@@ -63,62 +69,13 @@
                     "type": {
                         "bool": true
                     }
-                }
-            }
-        },
-        "gridSettings": {
-            "displayName": "Grid Settings",
-            "properties": {
-                "columns": {
-                    "displayName": "Columns",
-                    "description": "Number of columns in the grid (0 for auto)",
-                    "type": {
-                        "numeric": true
-                    }
                 },
-                "showTitles": {
-                    "displayName": "Show Titles",
-                    "description": "Display molecule titles in each cell",
-                    "type": {
-                        "bool": true
-                    }
-                }
-            }
-        },
-        "surfaceSettings": {
-            "displayName": "Surface Settings",
-            "properties": {
-                "showSurface": {
-                    "displayName": "Show Surface",
-                    "description": "Display a translucent surface overlay on the structure",
+                "useCustomChainColors": {
+                    "displayName": "Use Custom Chain Colors",
                     "type": {
                         "bool": true
                     }
                 },
-                "surfaceOpacity": {
-                    "displayName": "Surface Opacity",
-                    "description": "Opacity of the surface (0-100%)",
-                    "type": {
-                        "numeric": true
-                    }
-                },
-                "surfaceColorScheme": {
-                    "displayName": "Surface Color Scheme",
-                    "type": {
-                        "enumeration": [
-                            { "value": "chain", "displayName": "By Chain" },
-                            { "value": "residue", "displayName": "By Residue" },
-                            { "value": "spectrum", "displayName": "Spectrum" },
-                            { "value": "ss", "displayName": "Secondary Structure" },
-                            { "value": "default", "displayName": "Default" }
-                        ]
-                    }
-                }
-            }
-        },
-        "chainColors": {
-            "displayName": "Chain Colors",
-            "properties": {
                 "chainAColor": {
                     "displayName": "Chain A Color",
                     "type": {
@@ -158,11 +115,81 @@
                             }
                         }
                     }
+                }
+            }
+        },
+        "gridSettings": {
+            "displayName": "Grid Settings",
+            "properties": {
+                "columns": {
+                    "displayName": "Columns",
+                    "description": "Number of columns in the grid (0 for auto)",
+                    "type": {
+                        "numeric": true
+                    }
                 },
-                "useCustomChainColors": {
-                    "displayName": "Use Custom Chain Colors",
+                "showTitles": {
+                    "displayName": "Show Titles",
+                    "description": "Display molecule titles in each cell",
                     "type": {
                         "bool": true
+                    }
+                },
+                "titlePosition": {
+                    "displayName": "Title Position",
+                    "description": "Position of the title in each cell",
+                    "type": {
+                        "enumeration": [
+                            { "value": "top-left", "displayName": "Top Left" },
+                            { "value": "top-center", "displayName": "Top Center" },
+                            { "value": "top-right", "displayName": "Top Right" },
+                            { "value": "bottom-left", "displayName": "Bottom Left" },
+                            { "value": "bottom-center", "displayName": "Bottom Center" },
+                            { "value": "bottom-right", "displayName": "Bottom Right" }
+                        ]
+                    }
+                }
+            }
+        },
+        "surfaceSettings": {
+            "displayName": "Surface Settings",
+            "properties": {
+                "showSurface": {
+                    "displayName": "Show Surface",
+                    "description": "Display a translucent surface overlay on the structure",
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "surfaceOpacity": {
+                    "displayName": "Surface Opacity",
+                    "description": "Opacity of the surface (0-100%)",
+                    "type": {
+                        "numeric": true
+                    }
+                },
+                "surfaceColorScheme": {
+                    "displayName": "Surface Color Scheme",
+                    "type": {
+                        "enumeration": [
+                            { "value": "chain", "displayName": "By Chain" },
+                            { "value": "residue", "displayName": "By Residue" },
+                            { "value": "spectrum", "displayName": "Spectrum" },
+                            { "value": "ss", "displayName": "Secondary Structure" },
+                            { "value": "custom", "displayName": "Custom Color" },
+                            { "value": "default", "displayName": "Default" }
+                        ]
+                    }
+                },
+                "surfaceColor": {
+                    "displayName": "Surface Color",
+                    "description": "Custom surface color (when Color Scheme is Custom)",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
                     }
                 }
             }
@@ -186,6 +213,11 @@
                         {
                             "for": {
                                 "in": "formatData"
+                            }
+                        },
+                        {
+                            "for": {
+                                "in": "filePathData"
                             }
                         }
                     ],
