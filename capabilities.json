@@ -115,6 +115,26 @@
                             }
                         }
                     }
+                },
+                "chainEColor": {
+                    "displayName": "Chain E Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
+                },
+                "chainFColor": {
+                    "displayName": "Chain F Color",
+                    "type": {
+                        "fill": {
+                            "solid": {
+                                "color": true
+                            }
+                        }
+                    }
                 }
             }
         },
