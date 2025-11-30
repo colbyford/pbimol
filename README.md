@@ -2,7 +2,7 @@
 
 A Power BI custom visual that allows users to visualize molecular structure data using the 3Dmol.js viewer.
 
-<h3 align="right">Tuple, LLC</h3>
+<h3 align="right">Colby T. Ford, Ph.D. | Tuple, LLC</h3>
 
 ## Features
 
@@ -11,7 +11,7 @@ A Power BI custom visual that allows users to visualize molecular structure data
 - **Small Multiples Support**: Display multiple structures in a grid layout with configurable title positions
 - **Multiple visualization styles**: Choose from Cartoon, Stick, Line, Cross, Sphere, and Surface representations
 - **Flexible coloring schemes**: Color by Chain, Residue, Spectrum, Secondary Structure, or use default colors
-- **Custom chain colors**: Define specific colors for chains A, B, C, and D directly in Display Settings
+- **Custom chain colors**: Define specific colors for chains A thru F directly in Display Settings
 - **Surface overlay**: Add translucent molecular surfaces with independent color control including custom colors
 - **Customizable display**: Adjust background color, enable auto-rotation, and configure grid layout
 - **Automatic format detection**: Automatically detects structure format, or specify explicitly
@@ -56,7 +56,7 @@ Access these settings in the Format pane:
 - **Background Color**: Set the viewer background color
 - **Auto Rotate**: Enable/disable automatic rotation of the structure
 - **Use Custom Chain Colors**: Enable custom coloring for individual chains
-- **Chain A/B/C/D Color**: Color pickers to set specific colors for each chain
+- **Chain A/B/C/D/E/F Color**: Color pickers to set specific colors for each chain
 
 #### Grid Settings
 - **Columns**: Number of columns in the grid (set to 0 for automatic layout based on the number of structures)
