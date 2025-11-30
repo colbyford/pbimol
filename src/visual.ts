@@ -53,8 +53,14 @@ const SUPPORTED_FORMATS = ['pdb', 'cif', 'mol2', 'sdf', 'xyz', 'cube'];
 // Common PDB record types for format detection
 const PDB_RECORD_TYPES = ['HEADER', 'ATOM', 'HETATM', 'MODEL', 'COMPND', 'SOURCE', 'TITLE', 'REMARK', 'SEQRES', 'CRYST1'];
 
+// Supported chains for custom coloring
+const SUPPORTED_CHAINS = ['A', 'B', 'C', 'D', 'E', 'F'];
+
 // Viewer engine types
 type ViewerEngine = '3dmol' | 'molstar';
+
+// Mol* supported format types
+type MolstarFormat = 'pdb' | 'mmcif' | 'mol2' | 'sdf' | 'xyz' | 'mol';
 
 // Abstract viewer interface for 3Dmol.js
 interface ThreeDmolViewerCell {
@@ -540,9 +546,10 @@ export class Visual implements IVisual {
     }
 
     /**
-     * Get Mol* format string from our format string
+     * Get Mol* format string from our format string.
+     * Note: 'mol' and 'sdf' are both MDL Molfile-derived formats that Mol* handles with the same parser.
      */
-    private getMolstarFormat(format: string): 'pdb' | 'mmcif' | 'mol2' | 'sdf' | 'xyz' | 'mol' {
+    private getMolstarFormat(format: string): MolstarFormat {
         switch (format.toLowerCase()) {
             case 'cif':
             case 'mmcif':
@@ -551,6 +558,7 @@ export class Visual implements IVisual {
                 return 'mol2';
             case 'sdf':
             case 'mol':
+                // Both SDF and MOL files use the MDL Molfile format, handled by Mol*'s SDF parser
                 return 'sdf';
             case 'xyz':
                 return 'xyz';
@@ -769,7 +777,7 @@ export class Visual implements IVisual {
             // Apply the main style
             if (useCustomChainColors) {
                 // Apply custom colors for each chain
-                for (const chain of ['A', 'B', 'C', 'D', 'E', 'F']) {
+                for (const chain of SUPPORTED_CHAINS) {
                     const chainStyle: any = { ...styleConfig };
                     chainStyle.color = chainColorMap[chain];
                     
