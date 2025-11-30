@@ -106,9 +106,33 @@ class DisplaySettingsCard extends FormattingSettingsCard {
         value: { value: "#FFFF00" }
     });
 
+    chainEColor = new formattingSettings.ColorPicker({
+        name: "chainEColor",
+        displayName: "Chain E Color",
+        value: { value: "#FF9999" }
+    });
+
+    chainFColor = new formattingSettings.ColorPicker({
+        name: "chainFColor",
+        displayName: "Chain F Color",
+        value: { value: "#CCCCCC" }
+    });
+
     name: string = "displaySettings";
     displayName: string = "Display Settings";
-    slices: Array<FormattingSettingsSlice> = [this.style, this.colorScheme, this.backgroundColor, this.spin, this.useCustomChainColors, this.chainAColor, this.chainBColor, this.chainCColor, this.chainDColor];
+    slices: Array<FormattingSettingsSlice> = [
+        this.style,
+        this.colorScheme,
+        this.backgroundColor,
+        this.spin,
+        this.useCustomChainColors,
+        this.chainAColor,
+        this.chainBColor,
+        this.chainCColor,
+        this.chainDColor,
+        this.chainEColor,
+        this.chainFColor
+    ];
 }
 
 /**
