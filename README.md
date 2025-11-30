@@ -4,6 +4,8 @@ A Power BI custom visual that allows users to visualize molecular structure data
 
 <h3 align="right">Colby T. Ford, Ph.D. | Tuple, LLC</h3>
 
+![Example Dashboard](example/example_dashboard.png)
+
 ## Features
 
 - **Multiple format support**: Load structures in PDB, CIF, MOL2, SDF, XYZ, or Cube format
