@@ -335,6 +335,8 @@ export class Visual implements IVisual {
         const chainBColor = this.formattingSettings.displaySettingsCard.chainBColor.value.value;
         const chainCColor = this.formattingSettings.displaySettingsCard.chainCColor.value.value;
         const chainDColor = this.formattingSettings.displaySettingsCard.chainDColor.value.value;
+        const chainEColor = this.formattingSettings.displaySettingsCard.chainEColor.value.value;
+        const chainFColor = this.formattingSettings.displaySettingsCard.chainFColor.value.value;
         const columns = this.formattingSettings.gridSettingsCard.columns.value;
         const showTitles = this.formattingSettings.gridSettingsCard.showTitles.value;
         const titlePosition = String(this.formattingSettings.gridSettingsCard.titlePosition.value.value);
@@ -468,7 +470,9 @@ export class Visual implements IVisual {
             'A': chainAColor,
             'B': chainBColor,
             'C': chainCColor,
-            'D': chainDColor
+            'D': chainDColor,
+            'E': chainEColor,
+            'F': chainFColor
         };
 
         // Helper function to apply styling to a viewer
