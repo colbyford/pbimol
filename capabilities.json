@@ -26,6 +26,21 @@
         }
     ],
     "objects": {
+        "viewerSettings": {
+            "displayName": "Viewer Settings",
+            "properties": {
+                "viewerEngine": {
+                    "displayName": "Viewer Engine",
+                    "description": "Choose the molecular visualization engine",
+                    "type": {
+                        "enumeration": [
+                            { "value": "3dmol", "displayName": "3Dmol.js" },
+                            { "value": "molstar", "displayName": "Mol*" }
+                        ]
+                    }
+                }
+            }
+        },
         "displaySettings": {
             "displayName": "Display Settings",
             "properties": {

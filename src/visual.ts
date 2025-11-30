@@ -31,6 +31,15 @@ import "./../style/visual.less";
 // @ts-ignore
 import * as $3Dmol from "3dmol/build/3Dmol.js";
 
+// Mol* imports
+import { PluginContext } from "molstar/lib/mol-plugin/context";
+import { DefaultPluginSpec } from "molstar/lib/mol-plugin/spec";
+import { PluginConfig } from "molstar/lib/mol-plugin/config";
+import { StateTransforms } from "molstar/lib/mol-plugin-state/transforms";
+import { PluginStateObject } from "molstar/lib/mol-plugin-state/objects";
+import { StateObjectRef } from "molstar/lib/mol-state";
+import { Color } from "molstar/lib/mol-util/color";
+
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
@@ -44,12 +53,28 @@ const SUPPORTED_FORMATS = ['pdb', 'cif', 'mol2', 'sdf', 'xyz', 'cube'];
 // Common PDB record types for format detection
 const PDB_RECORD_TYPES = ['HEADER', 'ATOM', 'HETATM', 'MODEL', 'COMPND', 'SOURCE', 'TITLE', 'REMARK', 'SEQRES', 'CRYST1'];
 
-interface ViewerCell {
+// Viewer engine types
+type ViewerEngine = '3dmol' | 'molstar';
+
+// Abstract viewer interface for 3Dmol.js
+interface ThreeDmolViewerCell {
     container: HTMLElement;
     viewerDiv: HTMLElement;
     titleDiv: HTMLElement;
     viewer: $3Dmol.GLViewer;
+    engine: '3dmol';
 }
+
+// Abstract viewer interface for Mol*
+interface MolstarViewerCell {
+    container: HTMLElement;
+    viewerDiv: HTMLElement;
+    titleDiv: HTMLElement;
+    plugin: PluginContext;
+    engine: 'molstar';
+}
+
+type ViewerCell = ThreeDmolViewerCell | MolstarViewerCell;
 
 export class Visual implements IVisual {
     private target: HTMLElement;
@@ -57,6 +82,7 @@ export class Visual implements IVisual {
     private viewers: ViewerCell[];
     private formattingSettings: VisualFormattingSettingsModel;
     private formattingSettingsService: FormattingSettingsService;
+    private currentEngine: ViewerEngine = '3dmol';
 
     constructor(options: VisualConstructorOptions) {
         console.log('Visual constructor', options);
@@ -72,6 +98,30 @@ export class Visual implements IVisual {
         this.gridContainer.style.gap = "2px";
         this.gridContainer.style.overflow = "hidden";
         this.target.appendChild(this.gridContainer);
+    }
+
+    /**
+     * Dispose of Mol* plugin properly
+     */
+    private disposeMolstarPlugin(plugin: PluginContext): void {
+        try {
+            plugin.dispose();
+        } catch (e) {
+            console.warn('Error disposing Mol* plugin:', e);
+        }
+    }
+
+    /**
+     * Clear all viewers and their containers
+     */
+    private clearAllViewers(): void {
+        for (const cell of this.viewers) {
+            if (cell.engine === 'molstar') {
+                this.disposeMolstarPlugin((cell as MolstarViewerCell).plugin);
+            }
+            cell.container.remove();
+        }
+        this.viewers = [];
     }
 
     /**
@@ -220,9 +270,9 @@ export class Visual implements IVisual {
     }
 
     /**
-     * Create or reuse viewer cells for the grid
+     * Create or reuse viewer cells for the grid (3Dmol.js version)
      */
-    private setupViewerGrid(count: number, columns: number, backgroundColor: string, showTitles: boolean, titlePosition: string): void {
+    private setupViewerGrid3Dmol(count: number, columns: number, backgroundColor: string, showTitles: boolean, titlePosition: string): void {
         // Calculate actual columns and rows
         const cols = columns > 0 ? columns : Math.ceil(Math.sqrt(count));
         const rows = Math.ceil(count / cols);
@@ -235,6 +285,9 @@ export class Visual implements IVisual {
         while (this.viewers.length > count) {
             const cell = this.viewers.pop();
             if (cell) {
+                if (cell.engine === 'molstar') {
+                    this.disposeMolstarPlugin((cell as MolstarViewerCell).plugin);
+                }
                 cell.container.remove();
             }
         }
@@ -276,12 +329,14 @@ export class Visual implements IVisual {
             
             const viewer = $3Dmol.createViewer(viewerDiv, {});
             
-            this.viewers.push({ container, viewerDiv, titleDiv, viewer });
+            this.viewers.push({ container, viewerDiv, titleDiv, viewer, engine: '3dmol' } as ThreeDmolViewerCell);
         }
         
         // Update all viewer backgrounds, title visibility and position
         for (const cell of this.viewers) {
-            cell.viewer.setBackgroundColor(backgroundColor);
+            if (cell.engine === '3dmol') {
+                (cell as ThreeDmolViewerCell).viewer.setBackgroundColor(backgroundColor);
+            }
             cell.titleDiv.style.display = showTitles ? "block" : "none";
             
             // Set title position
@@ -289,6 +344,7 @@ export class Visual implements IVisual {
             cell.titleDiv.style.bottom = "";
             cell.titleDiv.style.left = "";
             cell.titleDiv.style.right = "";
+            cell.titleDiv.style.transform = "";
             
             if (titlePosition.startsWith("top")) {
                 cell.titleDiv.style.top = "2px";
@@ -307,6 +363,203 @@ export class Visual implements IVisual {
         }
     }
 
+    /**
+     * Create or reuse viewer cells for the grid (Mol* version)
+     */
+    private async setupViewerGridMolstar(count: number, columns: number, backgroundColor: string, showTitles: boolean, titlePosition: string): Promise<void> {
+        // Calculate actual columns and rows
+        const cols = columns > 0 ? columns : Math.ceil(Math.sqrt(count));
+        const rows = Math.ceil(count / cols);
+        
+        // Update grid template
+        this.gridContainer.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        this.gridContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+        
+        // Remove excess viewers
+        while (this.viewers.length > count) {
+            const cell = this.viewers.pop();
+            if (cell) {
+                if (cell.engine === 'molstar') {
+                    this.disposeMolstarPlugin((cell as MolstarViewerCell).plugin);
+                }
+                cell.container.remove();
+            }
+        }
+        
+        // Add new viewers if needed
+        while (this.viewers.length < count) {
+            const container = document.createElement("div");
+            container.style.position = "relative";
+            container.style.width = "100%";
+            container.style.height = "100%";
+            container.style.minHeight = "50px";
+            container.style.minWidth = "50px";
+            container.style.display = "flex";
+            container.style.flexDirection = "column";
+            container.style.overflow = "hidden";
+            this.gridContainer.appendChild(container);
+            
+            // Create title div
+            const titleDiv = document.createElement("div");
+            titleDiv.style.position = "absolute";
+            titleDiv.style.padding = "2px 4px";
+            titleDiv.style.fontSize = "12px";
+            titleDiv.style.fontWeight = "bold";
+            titleDiv.style.overflow = "hidden";
+            titleDiv.style.textOverflow = "ellipsis";
+            titleDiv.style.whiteSpace = "nowrap";
+            titleDiv.style.zIndex = "10";
+            titleDiv.style.backgroundColor = "rgba(255, 255, 255, 0.7)";
+            titleDiv.style.borderRadius = "2px";
+            container.appendChild(titleDiv);
+            
+            // Create viewer div for Mol*
+            const viewerDiv = document.createElement("div");
+            viewerDiv.style.flex = "1";
+            viewerDiv.style.position = "relative";
+            viewerDiv.style.width = "100%";
+            viewerDiv.style.height = "100%";
+            viewerDiv.style.minHeight = "0";
+            container.appendChild(viewerDiv);
+            
+            // Create canvas for Mol*
+            const canvas = document.createElement("canvas");
+            canvas.style.width = "100%";
+            canvas.style.height = "100%";
+            viewerDiv.appendChild(canvas);
+            
+            // Initialize Mol* plugin
+            const plugin = await this.createMolstarPlugin(canvas, backgroundColor);
+            
+            this.viewers.push({ container, viewerDiv, titleDiv, plugin, engine: 'molstar' } as MolstarViewerCell);
+        }
+        
+        // Update all title visibility and position
+        for (const cell of this.viewers) {
+            cell.titleDiv.style.display = showTitles ? "block" : "none";
+            
+            // Set title position
+            cell.titleDiv.style.top = "";
+            cell.titleDiv.style.bottom = "";
+            cell.titleDiv.style.left = "";
+            cell.titleDiv.style.right = "";
+            cell.titleDiv.style.transform = "";
+            
+            if (titlePosition.startsWith("top")) {
+                cell.titleDiv.style.top = "2px";
+            } else {
+                cell.titleDiv.style.bottom = "2px";
+            }
+            
+            if (titlePosition.endsWith("left")) {
+                cell.titleDiv.style.left = "2px";
+            } else if (titlePosition.endsWith("right")) {
+                cell.titleDiv.style.right = "2px";
+            } else {
+                cell.titleDiv.style.left = "50%";
+                cell.titleDiv.style.transform = "translateX(-50%)";
+            }
+        }
+    }
+
+    /**
+     * Create a Mol* plugin instance
+     */
+    private async createMolstarPlugin(canvas: HTMLCanvasElement, backgroundColor: string): Promise<PluginContext> {
+        const spec = DefaultPluginSpec();
+        
+        // Convert hex color to Mol* Color
+        const bgColor = this.hexToMolstarColor(backgroundColor);
+        
+        const plugin = new PluginContext(spec);
+        await plugin.init();
+        
+        // Initialize the canvas
+        const container = canvas.parentElement as HTMLDivElement;
+        const initSuccess = await plugin.initViewerAsync(canvas, container);
+        if (!initSuccess) {
+            throw new Error('Failed to initialize Mol* viewer');
+        }
+        
+        // Set background color
+        if (plugin.canvas3d) {
+            plugin.canvas3d.setProps({
+                renderer: { backgroundColor: bgColor }
+            });
+        }
+        
+        return plugin;
+    }
+
+    /**
+     * Convert hex color string to Mol* Color
+     */
+    private hexToMolstarColor(hex: string): Color {
+        // Remove # if present
+        const cleanHex = hex.replace('#', '');
+        const r = parseInt(cleanHex.substring(0, 2), 16);
+        const g = parseInt(cleanHex.substring(2, 4), 16);
+        const b = parseInt(cleanHex.substring(4, 6), 16);
+        return Color.fromRgb(r, g, b);
+    }
+
+    /**
+     * Load structure data into Mol* viewer
+     */
+    private async loadStructureInMolstar(plugin: PluginContext, structureData: string, format: string): Promise<void> {
+        // Clear existing structures
+        await plugin.clear();
+        
+        // Determine the format for Mol*
+        const molstarFormat = this.getMolstarFormat(format);
+        
+        // Create data from string
+        const data = await plugin.builders.data.rawData({ data: structureData, label: 'structure' });
+        
+        // Parse trajectory based on format
+        const trajectory = await plugin.builders.structure.parseTrajectory(data, molstarFormat);
+        
+        // Apply default preset
+        await plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
+    }
+
+    /**
+     * Load structure from URL into Mol* viewer
+     */
+    private async loadStructureFromUrlInMolstar(plugin: PluginContext, url: string, format: string): Promise<void> {
+        // Clear existing structures
+        await plugin.clear();
+        
+        // Determine the format for Mol*
+        const molstarFormat = this.getMolstarFormat(format);
+        
+        // Download and parse
+        const data = await plugin.builders.data.download({ url, isBinary: false });
+        const trajectory = await plugin.builders.structure.parseTrajectory(data, molstarFormat);
+        await plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
+    }
+
+    /**
+     * Get Mol* format string from our format string
+     */
+    private getMolstarFormat(format: string): 'pdb' | 'mmcif' | 'mol2' | 'sdf' | 'xyz' | 'mol' {
+        switch (format.toLowerCase()) {
+            case 'cif':
+            case 'mmcif':
+                return 'mmcif';
+            case 'mol2':
+                return 'mol2';
+            case 'sdf':
+            case 'mol':
+                return 'sdf';
+            case 'xyz':
+                return 'xyz';
+            case 'pdb':
+            default:
+                return 'pdb';
+        }
+    }
+
     public update(options: VisualUpdateOptions) {
         this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(VisualFormattingSettingsModel, options.dataViews[0]);
 
@@ -315,12 +568,27 @@ export class Visual implements IVisual {
         // Get data from Power BI
         const dataView: DataView = options.dataViews[0];
         
+        // Get viewer engine setting
+        const viewerEngine = String(this.formattingSettings.viewerSettingsCard.viewerEngine.value.value) as ViewerEngine;
+        
+        // Check if engine has changed
+        const engineChanged = viewerEngine !== this.currentEngine;
+        if (engineChanged) {
+            console.log(`Viewer engine changed from ${this.currentEngine} to ${viewerEngine}`);
+            this.clearAllViewers();
+            this.currentEngine = viewerEngine;
+        }
+        
         if (!dataView || !dataView.table || !dataView.table.rows || dataView.table.rows.length === 0) {
             console.log("No data available");
             // Clear all viewers
             for (const cell of this.viewers) {
-                cell.viewer.removeAllModels();
-                cell.viewer.render();
+                if (cell.engine === '3dmol') {
+                    (cell as ThreeDmolViewerCell).viewer.removeAllModels();
+                    (cell as ThreeDmolViewerCell).viewer.render();
+                } else if (cell.engine === 'molstar') {
+                    (cell as MolstarViewerCell).plugin.clear();
+                }
             }
             return;
         }
@@ -436,8 +704,39 @@ export class Visual implements IVisual {
         const viewportWidth = options.viewport.width;
         const viewportHeight = options.viewport.height;
 
+        // Use appropriate viewer based on engine
+        if (viewerEngine === 'molstar') {
+            this.updateWithMolstar(validRows, columns, backgroundColor, showTitles, titlePosition, viewportWidth, viewportHeight);
+        } else {
+            this.updateWith3Dmol(validRows, columns, backgroundColor, showTitles, titlePosition, style, colorScheme, useCustomChainColors, 
+                { A: chainAColor, B: chainBColor, C: chainCColor, D: chainDColor, E: chainEColor, F: chainFColor },
+                showSurface, surfaceOpacity, surfaceColorScheme, surfaceColor, spin, viewportWidth, viewportHeight);
+        }
+    }
+
+    /**
+     * Update visualization using 3Dmol.js
+     */
+    private updateWith3Dmol(
+        validRows: { structure: string; title: string; format: string; filePath: string }[],
+        columns: number,
+        backgroundColor: string,
+        showTitles: boolean,
+        titlePosition: string,
+        style: string,
+        colorScheme: string,
+        useCustomChainColors: boolean,
+        chainColorMap: { [key: string]: string },
+        showSurface: boolean,
+        surfaceOpacity: number,
+        surfaceColorScheme: string,
+        surfaceColor: string,
+        spin: boolean,
+        viewportWidth: number,
+        viewportHeight: number
+    ): void {
         // Setup the grid of viewers
-        this.setupViewerGrid(validRows.length, columns, backgroundColor, showTitles, titlePosition);
+        this.setupViewerGrid3Dmol(validRows.length, columns, backgroundColor, showTitles, titlePosition);
 
         // Configure style color scheme
         const styleConfig: any = {};
@@ -465,22 +764,12 @@ export class Visual implements IVisual {
             surfaceConfig.colorscheme = "ssJmol";
         }
 
-        // Custom chain color mapping
-        const chainColorMap: { [key: string]: string } = {
-            'A': chainAColor,
-            'B': chainBColor,
-            'C': chainCColor,
-            'D': chainDColor,
-            'E': chainEColor,
-            'F': chainFColor
-        };
-
         // Helper function to apply styling to a viewer
         const applyStyleToViewer = (viewer: $3Dmol.GLViewer, styleConfig: any, useCustomChainColors: boolean, chainColorMap: { [key: string]: string }, style: string, showSurface: boolean, surfaceConfig: any, spin: boolean) => {
             // Apply the main style
             if (useCustomChainColors) {
                 // Apply custom colors for each chain
-                for (const chain of ['A', 'B', 'C', 'D']) {
+                for (const chain of ['A', 'B', 'C', 'D', 'E', 'F']) {
                     const chainStyle: any = { ...styleConfig };
                     chainStyle.color = chainColorMap[chain];
                     
@@ -532,7 +821,7 @@ export class Visual implements IVisual {
 
         // Load each structure into its viewer
         for (let i = 0; i < validRows.length; i++) {
-            const cell = this.viewers[i];
+            const cell = this.viewers[i] as ThreeDmolViewerCell;
             const viewer = cell.viewer;
             
             // Set the title
@@ -577,7 +866,69 @@ export class Visual implements IVisual {
 
         // Resize all viewers
         for (const cell of this.viewers) {
-            cell.viewer.resize();
+            if (cell.engine === '3dmol') {
+                (cell as ThreeDmolViewerCell).viewer.resize();
+            }
+        }
+    }
+
+    /**
+     * Update visualization using Mol*
+     */
+    private async updateWithMolstar(
+        validRows: { structure: string; title: string; format: string; filePath: string }[],
+        columns: number,
+        backgroundColor: string,
+        showTitles: boolean,
+        titlePosition: string,
+        viewportWidth: number,
+        viewportHeight: number
+    ): Promise<void> {
+        // Setup the grid of viewers
+        await this.setupViewerGridMolstar(validRows.length, columns, backgroundColor, showTitles, titlePosition);
+
+        // Load each structure into its viewer
+        for (let i = 0; i < validRows.length; i++) {
+            const cell = this.viewers[i] as MolstarViewerCell;
+            const plugin = cell.plugin;
+            
+            // Set the title
+            cell.titleDiv.textContent = validRows[i].title;
+
+            // If we have a filepath but no structure data, try to load from filepath
+            if (validRows[i].structure === "" && validRows[i].filePath !== "") {
+                const filePath = validRows[i].filePath;
+                const format = validRows[i].format || this.detectFormatFromPath(filePath);
+                
+                try {
+                    await this.loadStructureFromUrlInMolstar(plugin, filePath, format);
+                } catch (error) {
+                    console.error(`Error loading file ${i} from ${filePath}:`, error);
+                }
+            } else {
+                // Load from structure data
+                const structureData = this.normalizePdbData(validRows[i].structure);
+                const format = this.detectFormat(structureData, validRows[i].format);
+
+                try {
+                    await this.loadStructureInMolstar(plugin, structureData, format);
+                } catch (error) {
+                    console.error(`Error loading structure ${i}:`, error);
+                    continue;
+                }
+            }
+        }
+
+        // Update grid container size
+        this.gridContainer.style.width = viewportWidth + "px";
+        this.gridContainer.style.height = viewportHeight + "px";
+
+        // Resize all Mol* viewers
+        for (const cell of this.viewers) {
+            if (cell.engine === 'molstar') {
+                const molstarCell = cell as MolstarViewerCell;
+                molstarCell.plugin.layout.events.updated.next(undefined);
+            }
         }
     }
 

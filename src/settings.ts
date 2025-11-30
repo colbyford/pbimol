@@ -33,6 +33,26 @@ import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
 
 /**
+ * Viewer Settings Formatting Card
+ */
+class ViewerSettingsCard extends FormattingSettingsCard {
+    viewerEngine = new formattingSettings.ItemDropdown({
+        name: "viewerEngine",
+        displayName: "Viewer Engine",
+        description: "Choose the molecular visualization engine",
+        items: [
+            { value: "3dmol", displayName: "3Dmol.js" },
+            { value: "molstar", displayName: "Mol*" }
+        ],
+        value: { value: "3dmol", displayName: "3Dmol.js" }
+    });
+
+    name: string = "viewerSettings";
+    displayName: string = "Viewer Settings";
+    slices: Array<FormattingSettingsSlice> = [this.viewerEngine];
+}
+
+/**
  * Display Settings Formatting Card
  */
 class DisplaySettingsCard extends FormattingSettingsCard {
@@ -223,9 +243,10 @@ class SurfaceSettingsCard extends FormattingSettingsCard {
 */
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // Create formatting settings model formatting cards
+    viewerSettingsCard = new ViewerSettingsCard();
     displaySettingsCard = new DisplaySettingsCard();
     gridSettingsCard = new GridSettingsCard();
     surfaceSettingsCard = new SurfaceSettingsCard();
 
-    cards = [this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard];
+    cards = [this.viewerSettingsCard, this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard];
 }
