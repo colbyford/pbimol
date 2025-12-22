@@ -1,5 +1,5 @@
 {
-		"version": "1.0.0.0",
+		"version": "1.0.0.1",
 		"author": {"name":"Colby T. Ford","email":"colby@tuple.xyz"},
 		"resources": [
 			{
@@ -8,7 +8,7 @@
 				"file": "resources/pbi3dmol.pbiviz.json"
 			}
 		],
-		"visual": {"name":"pbi3dmol","displayName":"Protein Viewer","guid":"pbi3dmol","visualClassName":"Visual","version":"1.0.0.0","description":"Visualize protein structures using 3Dmol.js. Accepts PDB and CIF format data with customizable styles and colors.","supportUrl":"https://github.com/colbyford/3dmol.pbiviz","gitHubUrl":"https://github.com/colbyford/3dmol.pbiviz"},
+		"visual": {"name":"pbi3dmol","displayName":"Protein Viewer","guid":"pbi3dmol","visualClassName":"Visual","version":"1.0.0.1","description":"Visualize protein structures using 3Dmol.js. Accepts PDB and CIF format data with customizable styles and colors.","supportUrl":"https://github.com/colbyford/3dmol.pbiviz","gitHubUrl":"https://github.com/colbyford/3dmol.pbiviz"},
 		"metadata": {
 			"pbivizjson": {
 				"resourceId": "rId0"

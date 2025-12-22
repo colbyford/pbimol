@@ -249,6 +249,17 @@
                 }
             }
         }
-    ],
-    "privileges": []
+    ], 
+    "privileges": [
+        {
+            "name": "WebAccess",
+            "essential": true,
+            "parameters": [
+                "https://files.rcsb.org/*",
+                "https://raw.githubusercontent.com/*",
+                "https://pubchem.ncbi.nlm.nih.gov/*",
+                "https://alphafold.ebi.ac.uk/files/*"
+            ]
+        }
+    ]
 }
