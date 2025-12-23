@@ -75,6 +75,35 @@ export class Visual implements IVisual {
     }
 
     /**
+     * Detect if a string is a URL
+     * Note: PowerBI only allows HTTPS URLs to whitelisted domains (see privileges in capabilities.json)
+     * This method detects potential HTTPS URLs and domain patterns (which will be treated as HTTPS URLs)
+     */
+    private isUrl(value: string): boolean {
+        if (!value || typeof value !== 'string') {
+            return false;
+        }
+        
+        const trimmed = value.trim();
+        const lowerTrimmed = trimmed.toLowerCase();
+        
+        // Check for HTTPS URLs (the only protocol supported by PowerBI security restrictions)
+        if (lowerTrimmed.startsWith('https://')) {
+            return true;
+        }
+        
+        // Check if it looks like a URL with a domain pattern (e.g., example.com/path or www.example.com/path)
+        // These will be treated as https:// URLs by the loader
+        // Pattern: valid domain with at least two parts, proper TLD, and optional path
+        const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?)+(\.[a-zA-Z]{2,})(\/.*)?$/;
+        if (domainPattern.test(trimmed)) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    /**
      * Normalize PDB data by ensuring proper line endings and removing problematic characters
      */
     private normalizePdbData(data: string): string {
@@ -345,11 +374,10 @@ export class Visual implements IVisual {
         const surfaceColorScheme = String(this.formattingSettings.surfaceSettingsCard.surfaceColorScheme.value.value);
         const surfaceColor = this.formattingSettings.surfaceSettingsCard.surfaceColor.value.value;
 
-        // Determine column indices for protein data, title, format, and filepath
+        // Determine column indices for protein data, title, and format
         let proteinIndex = -1;
         let titleIndex = -1;
         let formatIndex = -1;
-        let filePathIndex = -1;
         
         if (dataView.table.columns && dataView.table.columns.length > 0) {
             for (let i = 0; i < dataView.table.columns.length; i++) {
@@ -360,12 +388,6 @@ export class Visual implements IVisual {
                     }
                     if (roles["titleData"] && titleIndex === -1) {
                         titleIndex = i;
-                    }
-                    if (roles["formatData"] && formatIndex === -1) {
-                        formatIndex = i;
-                    }
-                    if (roles["filePathData"] && filePathIndex === -1) {
-                        filePathIndex = i;
                     }
                 }
             }
@@ -382,47 +404,36 @@ export class Visual implements IVisual {
             return;
         }
 
-        // Filter valid protein data rows and collect titles, formats, and filepaths
-        const validRows: { structure: string; title: string; format: string; filePath: string }[] = [];
+        // Filter valid protein data rows and collect titles and formats
+        const validRows: { structure: string; title: string; format: string; isUrl: boolean }[] = [];
         for (const row of dataView.table.rows) {
             const proteinData = row[proteinIndex];
             
-            // Get filepath if available
-            let filePath = "";
-            if (filePathIndex >= 0 && row[filePathIndex] !== null && row[filePathIndex] !== undefined) {
-                filePath = String(row[filePathIndex]).trim();
-            }
-            
-            // Use filepath as structure data if protein data is empty but filepath is provided
-            let structureData = "";
             if (proteinData !== null && proteinData !== undefined) {
-                structureData = String(proteinData).trim();
-            }
-            
-            if ((structureData !== "" && structureData !== "null" && structureData !== "undefined") || filePath !== "") {
-                // Get format if available
-                let format = "";
-                if (formatIndex >= 0 && row[formatIndex] !== null && row[formatIndex] !== undefined) {
-                    format = String(row[formatIndex]).trim().toLowerCase();
-                }
+                const dataValue = String(proteinData).trim();
                 
-                // If structure data is valid, use it; otherwise we'll try filepath
-                if (structureData !== "" && structureData !== "null" && structureData !== "undefined") {
-                    if (this.isValidStructureData(structureData, format)) {
-                        // Get title if available
-                        let title = "";
-                        if (titleIndex >= 0 && row[titleIndex] !== null && row[titleIndex] !== undefined) {
-                            title = String(row[titleIndex]).trim();
-                        }
-                        validRows.push({ structure: structureData, title: title, format: format, filePath: filePath });
+                if (dataValue !== "" && dataValue !== "null" && dataValue !== "undefined") {
+                    // Detect if this is a URL or structure data
+                    const isUrl = this.isUrl(dataValue);
+                    
+                    // Get format if available
+                    let format = "";
+                    if (formatIndex >= 0 && row[formatIndex] !== null && row[formatIndex] !== undefined) {
+                        format = String(row[formatIndex]).trim().toLowerCase();
                     }
-                } else if (filePath !== "") {
-                    // If we only have a filepath, add it for later loading
+                    
+                    // Get title if available
                     let title = "";
                     if (titleIndex >= 0 && row[titleIndex] !== null && row[titleIndex] !== undefined) {
                         title = String(row[titleIndex]).trim();
                     }
-                    validRows.push({ structure: "", title: title, format: format, filePath: filePath });
+                    
+                    // If it's a URL, add it directly; if it's structure data, validate it first
+                    if (isUrl) {
+                        validRows.push({ structure: dataValue, title: title, format: format, isUrl: true });
+                    } else if (this.isValidStructureData(dataValue, format)) {
+                        validRows.push({ structure: dataValue, title: title, format: format, isUrl: false });
+                    }
                 }
             }
         }
@@ -542,21 +553,21 @@ export class Visual implements IVisual {
             viewer.removeAllModels();
             viewer.removeAllSurfaces();
 
-            // If we have a filepath but no structure data, try to load from filepath
-            if (validRows[i].structure === "" && validRows[i].filePath !== "") {
-                const filePath = validRows[i].filePath;
-                const format = validRows[i].format || this.detectFormatFromPath(filePath);
+            // Check if this is a URL or structure data
+            if (validRows[i].isUrl) {
+                const url = validRows[i].structure;
+                const format = validRows[i].format || this.detectFormatFromPath(url);
                 
                 // Use 3Dmol's built-in file loading (works with URLs)
                 try {
-                    $3Dmol.download(`url:${filePath}`, viewer, { format: format }, () => {
+                    $3Dmol.download(`url:${url}`, viewer, { format: format }, () => {
                         applyStyleToViewer(viewer, styleConfig, useCustomChainColors, chainColorMap, style, showSurface, surfaceConfig, spin);
                     });
                 } catch (error) {
-                    console.error(`Error loading file ${i} from ${filePath}:`, error);
+                    console.error(`Error loading structure ${i} from URL ${url}:`, error);
                 }
             } else {
-                // Load from structure data
+                // Load from structure data string
                 const structureData = this.normalizePdbData(validRows[i].structure);
                 const format = this.detectFormat(structureData, validRows[i].format);
 

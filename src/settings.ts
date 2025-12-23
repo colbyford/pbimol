@@ -135,43 +135,7 @@ class DisplaySettingsCard extends FormattingSettingsCard {
     ];
 }
 
-/**
- * Grid Settings Formatting Card
- */
-class GridSettingsCard extends FormattingSettingsCard {
-    columns = new formattingSettings.NumUpDown({
-        name: "columns",
-        displayName: "Columns",
-        description: "Number of columns in the grid (0 for auto)",
-        value: 0
-    });
 
-    showTitles = new formattingSettings.ToggleSwitch({
-        name: "showTitles",
-        displayName: "Show Titles",
-        description: "Display molecule titles in each cell",
-        value: true
-    });
-
-    titlePosition = new formattingSettings.ItemDropdown({
-        name: "titlePosition",
-        displayName: "Title Position",
-        description: "Position of the title in each cell",
-        items: [
-            { value: "top-left", displayName: "Top Left" },
-            { value: "top-center", displayName: "Top Center" },
-            { value: "top-right", displayName: "Top Right" },
-            { value: "bottom-left", displayName: "Bottom Left" },
-            { value: "bottom-center", displayName: "Bottom Center" },
-            { value: "bottom-right", displayName: "Bottom Right" }
-        ],
-        value: { value: "top-center", displayName: "Top Center" }
-    });
-
-    name: string = "gridSettings";
-    displayName: string = "Grid Settings";
-    slices: Array<FormattingSettingsSlice> = [this.columns, this.showTitles, this.titlePosition];
-}
 
 /**
  * Surface Settings Formatting Card
@@ -218,14 +182,52 @@ class SurfaceSettingsCard extends FormattingSettingsCard {
 }
 
 /**
+ * Grid Settings Formatting Card
+ */
+class GridSettingsCard extends FormattingSettingsCard {
+    columns = new formattingSettings.NumUpDown({
+        name: "columns",
+        displayName: "Columns",
+        description: "Number of columns in the grid (0 for auto)",
+        value: 0
+    });
+
+    showTitles = new formattingSettings.ToggleSwitch({
+        name: "showTitles",
+        displayName: "Show Titles",
+        description: "Display molecule titles in each cell",
+        value: true
+    });
+
+    titlePosition = new formattingSettings.ItemDropdown({
+        name: "titlePosition",
+        displayName: "Title Position",
+        description: "Position of the title in each cell",
+        items: [
+            { value: "top-left", displayName: "Top Left" },
+            { value: "top-center", displayName: "Top Center" },
+            { value: "top-right", displayName: "Top Right" },
+            { value: "bottom-left", displayName: "Bottom Left" },
+            { value: "bottom-center", displayName: "Bottom Center" },
+            { value: "bottom-right", displayName: "Bottom Right" }
+        ],
+        value: { value: "top-center", displayName: "Top Center" }
+    });
+
+    name: string = "gridSettings";
+    displayName: string = "Grid Settings";
+    slices: Array<FormattingSettingsSlice> = [this.columns, this.showTitles, this.titlePosition];
+}
+
+/**
 * visual settings model class
 *
 */
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // Create formatting settings model formatting cards
     displaySettingsCard = new DisplaySettingsCard();
-    gridSettingsCard = new GridSettingsCard();
     surfaceSettingsCard = new SurfaceSettingsCard();
+    gridSettingsCard = new GridSettingsCard();
 
-    cards = [this.displaySettingsCard, this.gridSettingsCard, this.surfaceSettingsCard];
+    cards = [this.displaySettingsCard, this.surfaceSettingsCard, this.gridSettingsCard];
 }
