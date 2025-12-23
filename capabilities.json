@@ -11,12 +11,6 @@
             "name": "titleData",
             "kind": "Grouping",
             "description": "Optional title/name for each structure"
-        },
-        {
-            "displayName": "Format Type",
-            "name": "formatData",
-            "kind": "Grouping",
-            "description": "Optional format type (pdb, cif, mol2, sdf, xyz, cube). If not provided, format is auto-detected."
         }
     ],
     "objects": {
@@ -222,11 +216,6 @@
                         {
                             "for": {
                                 "in": "titleData"
-                            }
-                        },
-                        {
-                            "for": {
-                                "in": "formatData"
                             }
                         }
                     ],

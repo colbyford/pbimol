@@ -389,9 +389,6 @@ export class Visual implements IVisual {
                     if (roles["titleData"] && titleIndex === -1) {
                         titleIndex = i;
                     }
-                    if (roles["formatData"] && formatIndex === -1) {
-                        formatIndex = i;
-                    }
                 }
             }
         }
