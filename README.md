@@ -1,4 +1,4 @@
-# 3Dmol.js Power BI Custom Visual
+# Molecule Viewer - Power BI Custom Visual 📊🧬
 
 A Power BI custom visual that allows users to visualize molecular structure data using the 3Dmol.js viewer.
 
