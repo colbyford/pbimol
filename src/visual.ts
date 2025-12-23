@@ -76,7 +76,8 @@ export class Visual implements IVisual {
 
     /**
      * Detect if a string is a URL
-     * Note: Only HTTPS URLs are supported due to PowerBI security restrictions
+     * Note: PowerBI only allows HTTPS URLs to whitelisted domains (see privileges in capabilities.json)
+     * This method detects potential URLs; PowerBI will handle security restrictions at runtime
      */
     private isUrl(value: string): boolean {
         if (!value || typeof value !== 'string') {
@@ -86,15 +87,19 @@ export class Visual implements IVisual {
         const trimmed = value.trim();
         const lowerTrimmed = trimmed.toLowerCase();
         
-        // Check for secure URL patterns (PowerBI only allows HTTPS)
-        // Using a regex approach to avoid hardcoded protocol strings
-        const secureUrlPattern = /^(https|ftp|file):\/\//i;
-        if (secureUrlPattern.test(lowerTrimmed)) {
+        // Check for HTTPS URLs (primary supported protocol in PowerBI)
+        if (/^https:\/\//i.test(lowerTrimmed)) {
             return true;
         }
         
-        // Check if it looks like a URL with a domain pattern
-        // This regex checks for patterns like: example.com/path or www.example.com/path
+        // Check for other URL protocols (may be restricted by PowerBI security)
+        const otherProtocolPattern = /^(ftp|file):\/\//i;
+        if (otherProtocolPattern.test(lowerTrimmed)) {
+            return true;
+        }
+        
+        // Check if it looks like a URL with a domain pattern (e.g., example.com/path)
+        // These will be treated as https:// URLs by the loader
         const domainPattern = /^([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(\/.*)?$/;
         if (domainPattern.test(trimmed)) {
             return true;
