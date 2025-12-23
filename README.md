@@ -30,14 +30,13 @@ A Power BI custom visual that allows users to visualize molecular structure data
 
 ### Data Requirements
 
-The visual expects a column containing molecular structure data as text strings, or file paths/URLs to structure files. Multiple rows will be displayed as a grid of structures.
+The visual expects a column containing molecular structure data as text strings OR file paths/URLs to structure files. The visual automatically detects whether the value is a URL or structure data. Multiple rows will be displayed as a grid of structures.
 
 1. Add the visual to your report canvas
-2. Drag a field containing structure data to the **Protein Structure** data role
+2. Drag a field containing structure data (string or URL) to the **Structure Data** data role
 3. Optionally, drag a field containing molecule names to the **Title** data role
 4. Optionally, drag a field containing format types (pdb, cif, mol2, sdf, xyz, cube) to the **Format Type** data role
-5. Optionally, drag a field containing file paths or URLs to the **File Path** data role
-6. The structure(s) will be rendered automatically in a grid layout
+5. The structure(s) will be rendered automatically in a grid layout
 
 ### Supported Formats
 
