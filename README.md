@@ -4,7 +4,9 @@ A Power BI custom visual that allows users to visualize molecular structure data
 
 <h3 align="right">Colby T. Ford, Ph.D. | Tuple, LLC</h3>
 
-![Example Dashboard](example/example_dashboard.png)
+<!-- ![Example Dashboard](example/example_dashboard.png) -->
+![Example Dashboard](example/example_dashboard.gif)
+
 
 ## Features
 
