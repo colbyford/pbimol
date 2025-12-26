@@ -37,8 +37,7 @@ The visual expects a column containing molecular structure data as text strings 
 1. Add the visual to your report canvas
 2. Drag a field containing structure data (string or URL) to the **Structure Data** data role
 3. Optionally, drag a field containing molecule names to the **Title** data role
-4. Optionally, drag a field containing format types (pdb, cif, mol2, sdf, xyz, cube) to the **Format Type** data role
-5. The structure(s) will be rendered automatically in a grid layout
+4. The structure(s) will be rendered automatically in a grid layout
 
 ### Supported Formats
 
