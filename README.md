@@ -18,7 +18,7 @@ A Power BI custom visual that allows users to visualize molecular structure data
 - **Custom chain colors**: Define specific colors for chains A thru F directly in Display Settings
 - **Surface overlay**: Add translucent molecular surfaces with independent color control including custom colors
 - **Customizable display**: Adjust background color, enable auto-rotation, and configure grid layout
-- **Automatic format detection**: Automatically detects structure format, or specify explicitly
+- **Automatic format detection**: Automatically detects structure format (PDB, CIF, etc.)
 
 ## Installation
 
